@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profile Page</title>
+  <link rel='stylesheet' href="/styles.css">
+  <script src="/main.js"></script>
+</head>
+
+<body>
+  <%- include("partials/navbar.ejs") %>
+
+  <h1>You are, <%= username %>!</h1>
+
+  <p>
+    <form action="/logout" method="POST">
+      <button>Logout <%= username %></button>
+    </form>
+  </p>
+  
+</body>
+
+</html>

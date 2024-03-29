@@ -9,6 +9,7 @@
 const path = require('path');
 require("dotenv").config({ path: path.join(process.env.HOME, '.cs304env')});
 const express = require('express');
+const bcrypt = require('bcrypt');
 const morgan = require('morgan');
 const serveStatic = require('serve-static');
 const bodyParser = require('body-parser');
@@ -50,13 +51,20 @@ app.use(cookieSession({
     // Cookie Options
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
-
+const ROUNDS = 15;
 // ================================================================
 // custom routes here
+const DBNAME = 'wave'; // modify this value
+const USERS = 'users';      // modify this for your collections
+const EVENTS = 'events'
 
-const DB = process.env.USER;
-const WMDB = 'wmdb';
-const STAFF = 'staff';
+//scott's example function:
+// app.get('/end', async (req, res) => {
+//     const db = await Connection.open(mongoUri, DBNAME);
+//     let all = await db.collection(EVENTS).find({}).sort({name: 1}).toArray();
+//     console.log('len', all.length, 'first', all[0]);
+//     return res.render('list.ejs', {listDescription: 'all events', list: all});
+// });
 
 // main page. This shows the use of session cookies
 app.get('/', (req, res) => {
@@ -68,13 +76,34 @@ app.get('/', (req, res) => {
     return res.render('index.ejs', {uid, visits});
 });
 
+app.get('/explore', (req, res) => {
+    // Initialize fake events
+    //would need to get from database
+    let events = [
+        { name: "Event 1" },
+        { name: "Event 2" },
+        { name: "Event 3" }
+    ];
+    // Render the explore.ejs template with the username and events
+    return res.render('explore.ejs', { username: req.session.uid, events });
+});
+
+
+app.get('/myevent', (req,res) => {
+    return res.render('myevent.ejs', {username: req.session.uid});
+  });
+
+app.get('/profile', (req,res) => {
+    return res.render('profile.ejs', {username: req.session.uid});
+  });
+
 // shows how logins might work by setting a value in the session
 // This is a conventional, non-Ajax, login, so it redirects to main page 
 app.post('/set-uid/', (req, res) => {
     console.log('in set-uid');
     req.session.uid = req.body.uid;
     req.session.logged_in = true;
-    res.redirect('/');
+    res.redirect('/explore');
 });
 
 // shows how logins might work via Ajax
@@ -90,6 +119,7 @@ app.post('/set-uid-ajax/', (req, res) => {
     req.session.logged_in = true;
     console.log('logged in via ajax as ', req.body.uid);
     res.send({error: false});
+    return res.redirect('/explore');
 });
 
 // conventional non-Ajax logout, so redirects
@@ -111,6 +141,16 @@ app.get('/form/', (req, res) => {
 app.post('/form/', (req, res) => {
     console.log('post form');
     return res.render('form.ejs', {action: '/form/', data: req.body });
+});
+
+app.get('/addevent/', (req, res) => {
+    console.log('get addevent form');
+    return res.render('form.ejs', {action: '/addevent/', data: req.query });
+});
+
+app.post('/addevent/', (req, res) => {
+    console.log('post a new event to the database');
+    return res.render('form.ejs', {action: '/addevent/', data: req.body });
 });
 
 app.get('/staffList/', async (req, res) => {
