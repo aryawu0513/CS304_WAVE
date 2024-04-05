@@ -52,6 +52,56 @@ app.use(cookieSession({
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }));
 const ROUNDS = 15;
+
+// ================================================================
+// configure Multer
+app.use('/uploads', express.static('uploads'));
+
+function timeString(dateObj) {
+    if( !dateObj) {
+        dateObj = new Date();
+    }
+    d2 = (val) => val < 10 ? '0'+val : ''+val;
+    let hh = d2(dateObj.getHours())
+    let mm = d2(dateObj.getMinutes())
+    let ss = d2(dateObj.getSeconds())
+    return hh+mm+ss
+}
+
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif' ];
+
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads')
+    },
+    filename: function (req, file, cb) {
+        // the path module provides a function that returns the extension
+        let ext = path.extname(file.originalname).toLowerCase();
+        console.log('extension', ext);
+        let hhmmss = timeString();
+        cb(null, file.fieldname + '-' + hhmmss + ext);
+    }
+})
+var upload = multer(
+    { storage: storage,
+      // check whether the file should be allowed
+      // should also install and use mime-types
+      // https://www.npmjs.com/package/mime-types
+      fileFilter: function(req, file, cb) {
+          let ext = path.extname(file.originalname).toLowerCase();
+          let ok = ALLOWED_EXTENSIONS.includes(ext);
+          console.log('file ok', ok);
+          if(ok) {
+              cb(null, true);
+          } else {
+              cb(null, false, new Error('not an allowed extension:'+ext));
+          }
+      },
+      // max fileSize in bytes
+      limits: {fileSize: 1_000_000 }});
+
+
+
 // ================================================================
 // custom routes here
 const DBNAME = 'wave'; // modify this value
@@ -76,9 +126,11 @@ app.get('/', (req, res) => {
     return res.render('index.ejs', {uid, visits});
 });
 
-app.get('/explore', (req, res) => {
+app.get('/explore', async (req, res) => {
     // Initialize fake events
     //would need to get from database
+    //const db = await Connection.open(mongoUri, DBNAME);
+    //let events = await db.collection(EVENTS).find({}).toArray();
     let events = [
         { name: "Event 1" },
         { name: "Event 2" },
@@ -133,32 +185,75 @@ app.post('/logout/', (req, res) => {
 // two kinds of forms (GET and POST), both of which are pre-filled with data
 // from previous request, including a SELECT menu. Everything but radio buttons
 
-app.get('/form/', (req, res) => {
-    console.log('get form');
-    return res.render('form.ejs', {action: '/form/', data: req.query });
-});
+// app.get('/form/', (req, res) => {
+//     console.log('get form');
+//     return res.render('form.ejs', {action: '/form/', data: req.query });
+// });
 
-app.post('/form/', (req, res) => {
-    console.log('post form');
-    return res.render('form.ejs', {action: '/form/', data: req.body });
-});
+// app.post('/form/', (req, res) => {
+//     console.log('post form');
+//     return res.render('form.ejs', {action: '/form/', data: req.body });
+// });
 
 app.get('/addevent/', (req, res) => {
     console.log('get addevent form');
-    return res.render('form.ejs', {action: '/addevent/', data: req.query });
+    return res.render('addevent.ejs', {action: '/addevent/', data: req.query });
 });
 
-app.post('/addevent/', (req, res) => {
+app.post('/addevent', upload.single('photo'), async (req, res) => {
     console.log('post a new event to the database');
-    return res.render('form.ejs', {action: '/addevent/', data: req.body });
+    console.log('uploaded data', req.body);
+    console.log('image', req.file);
+    // insert file data into mongodb
+    //const db = await Connection.open(mongoUri, DBNAME);
+    // const eventsdb = db.collection(EVENTS);
+    
+    // const eventData = {
+    //     userid: req.session.uid,
+    //     eventid: 'event-' + timeString(new Date()),
+    //     event_name: req.body.name,
+    //     organizer: req.body.organizer,
+    //     date: req.body.date,
+    //     time: req.body.time,
+    //     location: req.body.location,
+    //     tags: req.body.tags ? req.body.tags.split(',') : [],
+    //     imagePath: '/uploads/' + req.file.filename,
+    // };
+    // //const result = await eventsdb.insertOne(eventData);
+    // console.log('insertOne result', result);
+    return res.redirect('/myevent');
 });
 
-app.get('/staffList/', async (req, res) => {
-    const db = await Connection.open(mongoUri, WMDB);
-    let all = await db.collection(STAFF).find({}).sort({name: 1}).toArray();
-    console.log('len', all.length, 'first', all[0]);
-    return res.render('list.ejs', {listDescription: 'all staff', list: all});
+// app.get('/staffList/', async (req, res) => {
+//     const db = await Connection.open(mongoUri, WMDB);
+//     let all = await db.collection(STAFF).find({}).sort({name: 1}).toArray();
+//     console.log('len', all.length, 'first', all[0]);
+//     return res.render('list.ejs', {listDescription: 'all staff', list: all});
+// });
+
+/////file upload
+app.post('/upload', upload.single('photo'), async (req, res) => {
+    const username = req.session.username;
+    if (!username) {
+        req.flash('info', "You are not logged in");
+        return res.redirect('/login');
+    }
+    console.log('uploaded data', req.body);
+    console.log('file', req.file);
+    // insert file data into mongodb
+    const db = await Connection.open(mongoUri, DBNAME);
+    const result = await db.collection(EVENTS)
+          .insertOne({title: req.body.title,
+                      owner: username,
+                      //base on event's attribtues
+                      Image_path: '/uploads/'+req.file.filename});
+    console.log('insertOne result', result);
+    // always nice to confirm with the user
+    req.flash('info', 'file uploaded');
+    return res.redirect('/');
 });
+
+
 
 // ================================================================
 // postlude

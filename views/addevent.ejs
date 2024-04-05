@@ -12,20 +12,52 @@
     <%- include("partials/navbar.ejs") %>
     <h1>Submit a form to add an event</h1>
 
-    <p>
+    <!-- <p>
         <%= data.customer %>
         <%= data.phone %>
         <%= data.addr %>
         <%= data.size %>
         <%= data.due %>
         <%= data.instructions %>
-    </p>
+    </p> -->
 
-
-<h2>GET</h2>
+<h2>POST</h2>
 
 <form class="example"
-      id="pizza-form"
+      id="addevent-form"
+      method="POST"
+      enctype="multipart/form-data"
+      action="/addevent">
+  <p><label>Event name: <input name="name" value="<%= data.name %>"></label></p>
+  <p><label>Organizer name: <input name="organizer" value="<%= data.organizer %>"></label></p>
+  <p><label>Date: <input type="date" name="date" value="<%= data.date %>"></label></p>
+  <p><label>Time: <input type="time" name="time" value="<%= data.time %>"></label></p>
+  <p><label>Location: <input type= name="location" value="<%= data.location %>"></label></p>
+  <p>
+    <label>file
+        <input type="file" accept="image/*" name="photo" >
+    </label>
+  </p>
+  <p><label>Tags:
+      <label><input type="checkbox" name="tags" value="tag1"> Tag 1</label>
+      <label><input type="checkbox" name="tags" value="tag2"> Tag 2</label>
+      <label><input type="checkbox" name="tags" value="tag3"> Tag 3</label>
+        <!-- Add more tags as needed -->
+  </label></p>
+  <p><button type="submit">Create Event</button></p>
+</form>
+
+    <!-- load local js -->
+    <script src="/main.js"></script>
+</body>
+</html>
+
+
+
+<h2>GET: NOT NEEDED?</h2>
+
+<form class="example"
+      id="getevent-form"
       method="GET"
       action="<%=action%>">
   <p><label>Customer name: <input name="customer" value="<%= data.customer %>"></label></p>
@@ -62,49 +94,3 @@
   </label></p>
   <p><button type="submit">Submit order</button></p>
 </form>
-
-<h2>POST</h2>
-
-<form class="example"
-      id="pizza-form"
-      method="POST"
-      action="<%=action%>">
-  <p><label>Customer name: <input name="customer" value="<%= data.customer %>"></label></p>
-  <p><label>Telephone: <input type=tel name="phone" value="<%= data.phone %>"></label></p>
-  <p><label>E-mail address: <input type=email name="addr" value="<%= data.addr %>"></label></p>
-  <p><label>Size:
-      <select name="size">
-        <option value="">choose size</option>
-
-        <% if( data.size == "small" ) { %>
-        <option value="small" selected>small (10-inch)</option>
-        <% } else { %>
-        <option value="small">small (10-inch)</option>
-        <% } %>
-
-        <% if( data.size == "medium" ) { %>
-        <option value="medium" selected>medium (12-inch)</option>
-        <% } else { %>
-        <option value="medium">medium (12-inch)</option>
-        <% } %>
-
-        <% if( data.size == "large" ) { %>
-        <option value="large" selected>large (14-inch)</option>
-        <% } else { %>
-        <option value="large">large (14-inch)</option>
-        <% } %>
-      </select>
-    </label></p>
-  <p><label>Preferred delivery time:
-      <input name="due" type=time min="11:00" max="21:00" step="900" value="<%= data.due %>">
-  </label></p>
-  <p><label>Delivery instructions:
-      <textarea rows="3" cols="30" name="instructions"><%= data.instructions %></textarea>
-  </label></p>
-  <p><button type="submit">Submit order</button></p>
-</form>
-
-    <!-- load local js -->
-    <script src="/main.js"></script>
-</body>
-</html>
