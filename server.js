@@ -253,6 +253,19 @@ app.post('/upload', upload.single('photo'), async (req, res) => {
     return res.redirect('/');
 });
 
+//search events on explore page
+app.get('/search', async (req, res) => {
+    //const db = await Connection.open(mongoUri, DBNAME);
+    //let events = await db.collection(EVENTS).find({}).toArray();
+    //return res.render('explore.ejs', { username: req.session.uid, events });
+})
+
+//filters events on explore page
+app.get('/filter', async (req, res) => {
+    //const db = await Connection.open(mongoUri, DBNAME);
+    //let events = await db.collection(EVENTS).find({}).toArray();
+    //return res.render('explore.ejs', { username: req.session.uid, events });
+})
 
 
 // ================================================================

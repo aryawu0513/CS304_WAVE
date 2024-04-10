@@ -14,6 +14,7 @@
 
   <h1>Welcome, <%= username %>! Here are some events</h1>
   <%- include("partials/searchbar.ejs") %>
+  <%- include("partials/filterbar.ejs") %>
   <ol>
     <% events.forEach( (evt) => {%>
     <li><%= evt.name %></li>

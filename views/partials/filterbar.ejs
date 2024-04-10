@@ -1,0 +1,37 @@
+<!-- copied from lookup -->
+<!-- to decide: if we want to allow multiple search: by keyword, by date, etc. -->
+<form method="GET" action="/filter/">
+    <p>
+        <label> filter events: 
+            <input
+              type="checkbox"
+              value="age" />
+            <label for="age">21+</label>
+            <input
+              type="checkbox"
+              value="food" />
+            <label for="food">Food</label>
+            <input
+              type="checkbox"
+              value="onCampus" />
+            <label for="onCampus">On Campus</label>
+            <input
+              type="checkbox"
+              value="offCampus" />
+            <label for="offCampus">Off Campus</label>
+            <input
+              type="checkbox"
+              value="sports" />
+            <label for="sports">Athletics</label>
+            <input
+              type="checkbox"
+              value="org" />
+            <label for="org">Org Event</label>
+            <input
+              type="checkbox"
+              value="today" />
+            <label for="today">Today</label>
+        </label>
+        <input type="submit" value="filter">
+    </p>
+</form>
