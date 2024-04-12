@@ -200,27 +200,32 @@ app.get('/addevent/', (req, res) => {
     return res.render('addevent.ejs', {action: '/addevent/', data: req.query });
 });
 
-app.post('/addevent', upload.single('photo'), async (req, res) => {
+app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
     console.log('uploaded data', req.body);
     console.log('image', req.file);
-    // insert file data into mongodb
-    //const db = await Connection.open(mongoUri, DBNAME);
-    // const eventsdb = db.collection(EVENTS);
+    //insert file data into mongodb
+    const db = await Connection.open(mongoUri, DBNAME);
+    const eventsdb = db.collection(EVENTS);
     
-    // const eventData = {
-    //     userid: req.session.uid,
-    //     eventid: 'event-' + timeString(new Date()),
-    //     event_name: req.body.name,
-    //     organizer: req.body.organizer,
-    //     date: req.body.date,
-    //     time: req.body.time,
-    //     location: req.body.location,
-    //     tags: req.body.tags ? req.body.tags.split(',') : [],
-    //     imagePath: '/uploads/' + req.file.filename,
-    // };
-    // //const result = await eventsdb.insertOne(eventData);
-    // console.log('insertOne result', result);
+    const eventData = {
+        // userid: req.session.uid,
+        eventid: 'event-' + timeString(new Date()),
+        eventName: req.body.eventName,
+        idOrganizer: req.body.idOrganizer,
+        location: req.body.location,
+        date: req.body.date,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
+        image: '/uploads/' + req.file.filename,     
+        tags: req.body.tags ? req.body.tags.split(',') : [],
+        attendees:[],
+        venmo: '',
+        gcal: '',
+        spotify: ''
+    };
+    const result = await eventsdb.insertOne(eventData);
+    console.log('insertOne result', result);
     return res.redirect('/myevent');
 });
 
@@ -232,7 +237,7 @@ app.post('/addevent', upload.single('photo'), async (req, res) => {
 // });
 
 /////file upload
-app.post('/upload', upload.single('photo'), async (req, res) => {
+app.post('/upload', upload.single('image'), async (req, res) => {
     const username = req.session.username;
     if (!username) {
         req.flash('info', "You are not logged in");

@@ -71,6 +71,11 @@ await add(db, 'events', {eventName: "Marshamaglow", eventId: 17, idOrganizer:3,l
 startTime:'7:00 PM', endTime:'9:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['snacks', 'photography', 'fun', 'friends'],
 attendees: [3], venmo: '', gcal:'', spotify:''});
 
+const eventsCursor = await db.collection('events').find({});
+    const events = await eventsCursor.toArray();
+    console.log("Events:");
+    console.log(events);
+
 await Connection.close();
 }
 main();
