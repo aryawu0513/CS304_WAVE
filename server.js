@@ -260,9 +260,13 @@ app.post('/upload', upload.single('image'), async (req, res) => {
 
 //search events on explore page
 app.get('/search', async (req, res) => {
-    //const db = await Connection.open(mongoUri, DBNAME);
-    //let events = await db.collection(EVENTS).find({}).toArray();
-    //return res.render('explore.ejs', { username: req.session.uid, events });
+    const db = await Connection.open(mongoUri, DBNAME);
+    const person = req.query.person;
+    const name = req.query.name;
+    const date = req.query.date;
+    const location = req.query.location;
+    let events = await db.collection(EVENTS).find({}).toArray();
+    return res.render('explore.ejs', { username: req.session.uid, events });
 })
 
 //filters events on explore page
