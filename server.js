@@ -127,17 +127,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/explore', async (req, res) => {
-    // Initialize fake events
-    //would need to get from database
-    //const db = await Connection.open(mongoUri, DBNAME);
-    //let events = await db.collection(EVENTS).find({}).toArray();
-    let events = [
-        { name: "Event 1" },
-        { name: "Event 2" },
-        { name: "Event 3" }
-    ];
-    // Render the explore.ejs template with the username and events
-    return res.render('explore.ejs', { username: req.session.uid, events });
+    const db = await Connection.open(mongoUri, DBNAME);
+    // this loads all events
+    let events = await db.collection(EVENTS).find().toArray();
+    console.log("here are events", events)
+    return res.render('explore.ejs', { username: req.session.uid, events: events });
 });
 
 
@@ -254,14 +248,23 @@ app.post('/upload', upload.single('photo'), async (req, res) => {
 });
 
 //search events on explore page
-app.get('/search', async (req, res) => {
+app.get('/search/', async (req, res) => {
     const db = await Connection.open(mongoUri, DBNAME);
-    const person = req.query.person;
-    const name = req.query.name;
-    const date = req.query.date;
-    const location = req.query.location;
-    let events = await db.collection(EVENTS).find({}).toArray();
-    return res.render('explore.ejs', { username: req.session.uid, events });
+    const entry = req.query.entry;
+    const kind = req.query.kind; //assuming that the kind options correspond with the keys in database
+    let events;
+    if (kind == "person") {
+        let events = await db.collection(USERS).find({}).toArray();
+        console.log("in person")
+        //todo austen - if we want to let people search by hostname need to update database
+    } else {
+        let pattern = new RegExp(entry, "i");
+        let query = {};
+        query[kind] = { $regex: pattern };
+        events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+        console.log("here are events", events)
+    }
+    return res.render('explore.ejs', { username: req.session.uid, events: events });
 })
 
 //filters events on explore page

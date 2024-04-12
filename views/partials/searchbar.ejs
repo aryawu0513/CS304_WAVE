@@ -1,17 +1,19 @@
 <!-- copied from lookup -->
 <!-- to decide: if we want to allow multiple search: by keyword, by date, etc. -->
+
 <form method="GET" action="/search/">
     <p>
-        <label>search for events: <input type="text" required name="search"></label>
+        <label>search for events: <input type="text" required name="entry"></label>
         <label>kind
             <select required name="kind">
                 <option value="">Choose one</option>
                 <option value="person">Host Name</option>
-                <option value="name">Event Name</option>
+                <option value="eventName">Event Name</option>
                 <option value="date">Date</option>
                 <option value="location">Location</option>
             </select>
-        </label>
+        </label>        
         <input type="submit" value="search">
     </p>
 </form>
+
