@@ -27,8 +27,7 @@ return result;
 /**
 * This function deletes all documents in a given collection
 * @param {db} The database to read from.
-* @param {namePet} The name of the pet to be searched.
-* @returns the document after searching the collection by pet name.
+* @param {coll} The name of the collection
 */
 function resetDB(db, coll) {
 return db.collection(coll).deleteMany({});
@@ -37,7 +36,7 @@ return db.collection(coll).deleteMany({});
 /**
 * This function deletes a user, which is specified by their id, from a collection.
 * @param {db} The database to delete from.
-* @param {namePet} The name of the user to delete.
+* @param {userId} The name of the user to delete.
 */
 function deleteUser(db, userId) {
 db.collection('users').deleteOne({userId: userId });
