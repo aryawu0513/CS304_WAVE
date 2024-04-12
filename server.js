@@ -257,26 +257,57 @@ app.get('/search/', async (req, res) => {
     const db = await Connection.open(mongoUri, DBNAME);
     const entry = req.query.entry;
     const kind = req.query.kind; //assuming that the kind options correspond with the keys in database
-    let events;
+    const date = req.query.date;
+    let events = await db.collection(EVENTS).find().toArray();
+
+    if ((entry && !kind) || (!entry && kind)){
+        req.flash("info", `please provide corresponding kind for your search query`);
+        return res.render("explore.ejs", { username: req.session.uid, events})
+    }
     if (kind == "person") {
         let events = await db.collection(USERS).find({}).toArray();
         console.log("in person")
         //todo austen - if we want to let people search by hostname need to update database
     } else {
-        let pattern = new RegExp(entry, "i");
-        let query = {};
-        query[kind] = { $regex: pattern };
-        events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
-        console.log("here are events", events)
+        if (kind){
+            let kpattern = new RegExp(entry, "i");
+            let dpattern = new RegExp(date, "i");
+            let query = {date: { $regex: dpattern }}; //todo austen - check that this works
+            query[kind] = { $regex: kpattern };
+            console.log("here is query", query)
+            events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+            console.log("here are events", events)
+        } else {
+            let dpattern = new RegExp(date, "i");
+            let query = {date: { $regex: dpattern }}; //todo austen - check that this works
+            console.log("here is query", query)
+            events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+            console.log("here are events", events)
+        }
     }
     return res.render('explore.ejs', { username: req.session.uid, events: events });
 })
 
 //filters events on explore page
 app.get('/filter', async (req, res) => {
-    //const db = await Connection.open(mongoUri, DBNAME);
-    //let events = await db.collection(EVENTS).find({}).toArray();
-    //return res.render('explore.ejs', { username: req.session.uid, events });
+    const db = await Connection.open(mongoUri, DBNAME);
+    const age = req.query.age
+    const food = req.query.food
+    const onCampus = req.query.onCampus
+    const offCampus = req.query.offCampus
+    const sports = req.query.sports
+    const org = req.query.org
+   
+
+    const tags = [age, food, onCampus, offCampus, sports, org].filter(value => value !== '');
+    //const tags = ['fun']
+    let query = {};
+    if (tags.length > 0) {
+        query.tags = { $in: tags };
+    }
+
+    let events = await db.collection(EVENTS).find(query).toArray();
+    return res.render('explore.ejs', { username: req.session.uid, events });
 })
 
 

@@ -3,15 +3,16 @@
 
 <form method="GET" action="/search/">
     <p>
-        <label>search for events: <input type="text" required name="entry"></label>
-        <label>kind
-            <select required name="kind">
-                <option value="">Choose one</option>
+        <label>Search for events: <input type="text" name="entry"></label>
+        <label>
+            <select name="kind">
+                <option value="">Search Type</option>
                 <option value="person">Host Name</option>
                 <option value="eventName">Event Name</option>
-                <option value="date">Date</option>
                 <option value="location">Location</option>
             </select>
+        <label for="date">Select date:</label>
+        <input type="date" name="date" value="0000-00-00" />
         </label>        
         <input type="submit" value="search">
     </p>
