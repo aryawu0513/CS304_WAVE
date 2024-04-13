@@ -21,6 +21,7 @@ const multer = require('multer');
 
 const { Connection } = require('./connection');
 const cs304 = require('./cs304');
+const { start } = require('repl');
 
 // Create and configure the app
 
@@ -194,25 +195,37 @@ app.get('/addevent/', (req, res) => {
     return res.render('addevent.ejs', {action: '/addevent/', data: req.query });
 });
 
+async function findTotalEvents() {
+    const db = await Connection.open(mongoUri, DBNAME);
+    const totalEvents = await db.collection(EVENTS).countDocuments();
+    return totalEvents
+}
+
 app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
     console.log('uploaded data', req.body);
     console.log('image', req.file);
     //insert file data into mongodb
+    const { eventName, idOrganizer, date, startTime,endTime,location,tags } = req.body;
+    if (!eventName || !idOrganizer  ||!date ||!startTime ||!endTime ||!location){
+        console.log("insufficient info")
+        return res.render("addevent.ejs",{data: req.body})
+    }
     const db = await Connection.open(mongoUri, DBNAME);
     const eventsdb = db.collection(EVENTS);
-    
+    const eventid = await findTotalEvents() + 1;
+    console.log("eventid",eventid)
     const eventData = {
         // userid: req.session.uid,
-        eventid: 'event-' + timeString(new Date()),
-        eventName: req.body.eventName,
-        idOrganizer: req.body.idOrganizer,
-        location: req.body.location,
-        date: req.body.date,
-        startTime: req.body.startTime,
-        endTime: req.body.endTime,
-        image: '/uploads/' + req.file.filename,     
-        tags: req.body.tags ? req.body.tags.split(',') : [],
+        eventId: eventid,
+        eventName: eventName,
+        idOrganizer: idOrganizer,
+        location: location,
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+        image: ['/uploads/' + req.file.filename],     
+        tags: tags,
         attendees:[],
         venmo: '',
         gcal: '',
@@ -231,26 +244,26 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
 // });
 
 /////file upload
-app.post('/upload', upload.single('image'), async (req, res) => {
-    const username = req.session.username;
-    if (!username) {
-        req.flash('info', "You are not logged in");
-        return res.redirect('/login');
-    }
-    console.log('uploaded data', req.body);
-    console.log('file', req.file);
-    // insert file data into mongodb
-    const db = await Connection.open(mongoUri, DBNAME);
-    const result = await db.collection(EVENTS)
-          .insertOne({title: req.body.title,
-                      owner: username,
-                      //base on event's attribtues
-                      Image_path: '/uploads/'+req.file.filename});
-    console.log('insertOne result', result);
-    // always nice to confirm with the user
-    req.flash('info', 'file uploaded');
-    return res.redirect('/');
-});
+// app.post('/upload', upload.single('image'), async (req, res) => {
+//     const username = req.session.username;
+//     if (!username) {
+//         req.flash('info', "You are not logged in");
+//         return res.redirect('/login');
+//     }
+//     console.log('uploaded data', req.body);
+//     console.log('file', req.file);
+//     // insert file data into mongodb
+//     const db = await Connection.open(mongoUri, DBNAME);
+//     const result = await db.collection(EVENTS)
+//           .insertOne({title: req.body.title,
+//                       owner: username,
+//                       //base on event's attribtues
+//                       Image_path: '/uploads/'+req.file.filename});
+//     console.log('insertOne result', result);
+//     // always nice to confirm with the user
+//     req.flash('info', 'file uploaded');
+//     return res.redirect('/');
+// });
 
 //search events on explore page
 app.get('/search/', async (req, res) => {
