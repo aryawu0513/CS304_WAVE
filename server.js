@@ -208,7 +208,7 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
     //insert file data into mongodb
     const { eventName, idOrganizer, date, startTime,endTime,location,tags } = req.body;
     if (!eventName || !idOrganizer  ||!date ||!startTime ||!endTime ||!location){
-        console.log("insufficient info")
+        req.flash('error', 'Missing Input');
         return res.render("addevent.ejs",{data: req.body})
     }
     const db = await Connection.open(mongoUri, DBNAME);
