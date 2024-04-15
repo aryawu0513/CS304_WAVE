@@ -4,12 +4,10 @@ const { Connection } = require('./connection');
 const cs304 = require('./cs304');
 
 const mongoUri = cs304.getMongoUri();
-//const counter = require('./counter-utils.js')
+const counter = require('./counter-utils.js')
 
 // REPLACE WITH YOUR OWN USERNAME ("og102", for example)
 const myDBName = "wave";
-
-
 /**
 * This function inserts an event/user into the specified collection.
 * @param {db} The database to edit.
@@ -17,9 +15,16 @@ const myDBName = "wave";
 * @param {dict} Dict with values you want to add to collection
 * @returns the result after the pet is added to the collection.
 */
-function add(db, coll, dict) {
-let result = db.collection(coll).insertOne(dict);
-//counter.incr(counters, collectionName);
+async function add(db, coll, dict) {
+    const id = await counter.incr(db.collection('counters'), coll);
+    // update userId if adding user
+    if (coll == "users"){
+        dict.userId = id;
+    }
+    else {
+        dict.eventId = id;
+    }
+    let result = db.collection(coll).insertOne(dict);
 return result;
 }
 
@@ -47,35 +52,41 @@ db.collection('users').deleteOne({userId: userId });
 * This is the main function, and is where functions are called and tested. It will also log results returned by functions.
 */
 async function main() {
-const db = await Connection.open(mongoUri, myDBName);
+    const db = await Connection.open(mongoUri, myDBName);
+    await resetDB(db, 'counters');
+    counter.init(db.collection('counters'), 'users');
+    counter.init(db.collection('counters'), 'events');
 
-await resetDB(db, 'users')
-await resetDB(db, 'events')
-await add(db, 'users', {name: "Maria del Granado", userId:1, wellesleyEmail: 'md103@wellesley.edu', friends: [2,3,4]
-, rsvp:[123,102], hosting: [123]});
-await add(db, 'users', {name: "Arya Wu",userId:2, wellesleyEmail: 'zw102@wellesley.edu', friends: [1,3,4], rsvp:[123,102], hosting: [102]});
-await add(db, 'users', {name: "Bella Steedly", userId:3, wellesleyEmail: 'bs102@wellesley.edu', friends: [1,2,4], rsvp:[102,17], hosting: [17]});
-await add(db, 'users', {name: "Ella Boodell",userId:4, wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[102], hosting: []});
+    await resetDB(db, 'users');
+    await resetDB(db, 'events');
+    await add(db, 'users', {name: "Maria del Granado", wellesleyEmail: 'md103@wellesley.edu', friends: [2,3,4], 
+    rsvp:[1,2], hosting: [1]});
+    await add(db, 'users', {name: "Arya Wu", wellesleyEmail: 'zw102@wellesley.edu', friends: [1,3,4], rsvp:[1,2], 
+    hosting: [2]});
+    await add(db, 'users', {name: "Bella Steedly", wellesleyEmail: 'bs102@wellesley.edu', friends: [1,2,4], 
+    rsvp:[2,3], hosting: [3]});
+    await add(db, 'users', {name: "Ella Boodell", wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[3], 
+    hosting: []});
 
-await Connection.open(mongoUri, myDBName);
-await add(db, 'events', {eventName: "Latinx Culture Show", eventId: 1, idOrganizer:1, location: 'Casenove Hall', date: '2024-08-15',
-startTime:'1:00 AM', endTime:'2:00 PM',image: ['https://ttn-media.s3.amazonaws.com/2019/09/24195005/Latinx-Online-678x381.png'], tags: ['onCampus', 'org'],
-attendees: [1,2], venmo: '', gcal:'', spotify:''});
+    //await Connection.open(mongoUri, myDBName);
+    await add(db, 'events', {eventName: "Latinx Culture Show", idOrganizer:1, nameOfOrganizer: 'Maria del Granado',location: 'Casenove Hall', date: '2024-08-15',
+    startTime:'1:00 AM', endTime:'2:00 PM',image: ['https://ttn-media.s3.amazonaws.com/2019/09/24195005/Latinx-Online-678x381.png'], tags: ['onCampus', 'org'],
+    attendees: [1,2], venmo: '', gcal:'', spotify:''});
 
 
-await add(db, 'events', {eventName: "Patriot's Day Picnic", eventId: 2, idOrganizer:2,location: 'Munger Meadows', date: '2024-05-15',
-startTime:'11:30 AM', endTime:'2:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus','sports'],
-attendees: [1, 2,3,4], venmo: '', gcal:'', spotify:''});
+    await add(db, 'events', {eventName: "Patriot's Day Picnic", idOrganizer:2, nameOfOrganizer: 'Arya Wu', location: 'Munger Meadows', date: '2024-05-15',
+    startTime:'11:30 AM', endTime:'2:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus','sports'],
+    attendees: [1, 2,3,4], venmo: '', gcal:'', spotify:''});
 
-await add(db, 'events', {eventName: "Marshamaglow", eventId: 3, idOrganizer:3,location: 'Lulu Firepit', date: '2024-04-16',
-startTime:'7:00 PM', endTime:'9:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus'],
-attendees: [3], venmo: '', gcal:'', spotify:''});
+    await add(db, 'events', {eventName: "Marshamaglow", idOrganizer:3, nameOfOrganizer: 'Bella Steedly',location: 'Lulu Firepit', date: '2024-04-16',
+    startTime:'7:00 PM', endTime:'9:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus'],
+    attendees: [3], venmo: '', gcal:'', spotify:''});
 
-const eventsCursor = await db.collection('events').find({});
-    const events = await eventsCursor.toArray();
-    console.log("Events:");
-    console.log(events);
+    const eventsCursor = await db.collection('events').find({});
+        const events = await eventsCursor.toArray();
+        console.log("Events:");
+        console.log(events);
 
-await Connection.close();
+    await Connection.close();
 }
 main();
