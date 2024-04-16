@@ -12,17 +12,31 @@
     <h1>Welcome!</h1>
     <p>Everything is fine.</p>
 
-    <div id="logged-in">
-    <p>You are logged in as <span id="login-uid"><%= uid %></span>
-        <form method="post" action="/logout/"><input type="submit" value="logout"></form></p>
-    </div>
-    <div id="not-logged-in">
-    <p>You are not logged in.</p>
-    <form id="login_form" method="post" action="/set-uid/">
-        <p><label>uid <input name="uid"></label></p>
-        <input type="button" id="login-ajax" value="ajax">
+    <h2>Register:</h2>
+  <p>
+    <form action="/set-uid/" method="POST">
+        <label> Username
+            <input type="text" name="username" placeholder="og102">
+        </label>
+        <label> Password
+            <input type="text" name="password" placeholder="********">
+        </label>
+      <button type="submit">register</button>
     </form>
-    </div>
+  </p>
+  <h2>Login:</h2>
+  <p>
+    <form action="/login" method="POST">
+        <label> Username
+            <input type="text" name="username" placeholder="og102">
+        </label>
+        <label> Password
+            <input type="text" name="password" placeholder="********">
+        </label>
+      <button type="submit">login</button>
+    </form>
+  </p>
+
 
     <p>You have visited <%= visits %> times.</p>
 
