@@ -132,7 +132,7 @@ app.get('/explore', async (req, res) => {
     // this loads all events
     let events = await db.collection(EVENTS).find().toArray();
     console.log("here are events", events)
-    return res.render('explore.ejs', { username: req.session.uid, events: events });
+    return res.render('explore.ejs', { username: req.session.username, events: events });
 });
 
 
@@ -143,6 +143,13 @@ app.get('/myevent', (req,res) => {
 app.get('/profile', (req,res) => {
     return res.render('profile.ejs', {username: req.session.username});
   });
+app.get('/register', (req, res) => {
+    let uid = req.session.uid || 'unknown';
+    let visits = req.session.visits || 0;
+    visits++;
+    req.session.visits = visits;
+    return res.render('register.ejs', {uid, visits});
+})
 
 // shows how logins might work by setting a value in the session
 // This is a conventional, non-Ajax, login, so it redirects to main page 
