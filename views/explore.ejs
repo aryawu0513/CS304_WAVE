@@ -13,11 +13,28 @@
   <%- include("partials/navbar.ejs") %>
 
   <h1>Welcome, <%= username %>! Here are some events</h1>
+  <%- include("partials/flash.ejs") %>
   <%- include("partials/searchbar.ejs") %>
   <%- include("partials/filterbar.ejs") %>
   <ol>
     <% events.forEach( (evt) => {%>
-    <li><%= evt.name %></li>
+    <!-- <li><%= evt%></li> -->
+    <li class="event-details">
+      <h2><%= evt.eventName %></h2>
+      <p><strong>Event ID:</strong> <%= evt?.eventId %></p>
+      <p><strong>Organizer ID:</strong> <%= evt?.idOrganizer %></p>
+      <p><strong>Location:</strong> <%= evt?.location %></p>
+      <p><strong>Date:</strong> <%= evt?.date %></p>
+      <p><strong>Start Time:</strong> <%= evt?.startTime %></p>
+      <p><strong>End Time:</strong> <%= evt?.endTime %></p>
+      <p><strong>Image:</strong></p>
+      <img src="<%= evt?.image[0] %>" alt="Event Image" width="300">
+      <p><strong>Tags:</strong> <%= evt?.tags.join(', ') %></p>
+      <p><strong>Attendees:</strong> <%= evt?.attendees.join(', ') %></p>
+      <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
+      <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
+      <p><strong>Spotify:</strong> <%= evt?.spotify %></p>
+    </li>
     <% }); %>
   </ol>
 </body>

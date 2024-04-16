@@ -21,6 +21,7 @@ const multer = require('multer');
 
 const { Connection } = require('./connection');
 const cs304 = require('./cs304');
+const { start } = require('repl');
 
 // Create and configure the app
 
@@ -127,17 +128,11 @@ app.get('/', (req, res) => {
 });
 
 app.get('/explore', async (req, res) => {
-    // Initialize fake events
-    //would need to get from database
-    //const db = await Connection.open(mongoUri, DBNAME);
-    //let events = await db.collection(EVENTS).find({}).toArray();
-    let events = [
-        { name: "Event 1" },
-        { name: "Event 2" },
-        { name: "Event 3" }
-    ];
-    // Render the explore.ejs template with the username and events
-    return res.render('explore.ejs', { username: req.session.username, events });
+    const db = await Connection.open(mongoUri, DBNAME);
+    // this loads all events
+    let events = await db.collection(EVENTS).find().toArray();
+    console.log("here are events", events)
+    return res.render('explore.ejs', { username: req.session.uid, events: events });
 });
 
 
@@ -259,27 +254,44 @@ app.get('/addevent/', (req, res) => {
     return res.render('addevent.ejs', {action: '/addevent/', data: req.query });
 });
 
-app.post('/addevent', upload.single('photo'), async (req, res) => {
+async function findTotalEvents() {
+    const db = await Connection.open(mongoUri, DBNAME);
+    const totalEvents = await db.collection(EVENTS).countDocuments();
+    return totalEvents
+}
+
+app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
     console.log('uploaded data', req.body);
     console.log('image', req.file);
-    // insert file data into mongodb
-    //const db = await Connection.open(mongoUri, DBNAME);
-    // const eventsdb = db.collection(EVENTS);
-    
-    // const eventData = {
-    //     userid: req.session.uid,
-    //     eventid: 'event-' + timeString(new Date()),
-    //     event_name: req.body.name,
-    //     organizer: req.body.organizer,
-    //     date: req.body.date,
-    //     time: req.body.time,
-    //     location: req.body.location,
-    //     tags: req.body.tags ? req.body.tags.split(',') : [],
-    //     imagePath: '/uploads/' + req.file.filename,
-    // };
-    // //const result = await eventsdb.insertOne(eventData);
-    // console.log('insertOne result', result);
+    //insert file data into mongodb
+    const { eventName, idOrganizer, date, startTime,endTime,location,tags } = req.body;
+    if (!eventName || !idOrganizer  ||!date ||!startTime ||!endTime ||!location){
+        req.flash('error', 'Missing Input');
+        return res.render("addevent.ejs",{data: req.body})
+    }
+    const db = await Connection.open(mongoUri, DBNAME);
+    const eventsdb = db.collection(EVENTS);
+    const eventid = await findTotalEvents() + 1;
+    console.log("eventid",eventid)
+    const eventData = {
+        // userid: req.session.uid,
+        eventId: eventid,
+        eventName: eventName,
+        idOrganizer: idOrganizer,
+        location: location,
+        date: date,
+        startTime: startTime,
+        endTime: endTime,
+        image: ['/uploads/' + req.file.filename],     
+        tags: tags,
+        attendees:[],
+        venmo: '',
+        gcal: '',
+        spotify: ''
+    };
+    const result = await eventsdb.insertOne(eventData);
+    console.log('insertOne result', result);
     return res.redirect('/myevent');
 });
 
@@ -291,39 +303,83 @@ app.post('/addevent', upload.single('photo'), async (req, res) => {
 // });
 
 /////file upload
-app.post('/upload', upload.single('photo'), async (req, res) => {
-    const username = req.session.username;
-    if (!username) {
-        req.flash('info', "You are not logged in");
-        return res.redirect('/login');
-    }
-    console.log('uploaded data', req.body);
-    console.log('file', req.file);
-    // insert file data into mongodb
-    const db = await Connection.open(mongoUri, DBNAME);
-    const result = await db.collection(EVENTS)
-          .insertOne({title: req.body.title,
-                      owner: username,
-                      //base on event's attribtues
-                      Image_path: '/uploads/'+req.file.filename});
-    console.log('insertOne result', result);
-    // always nice to confirm with the user
-    req.flash('info', 'file uploaded');
-    return res.redirect('/');
-});
+// app.post('/upload', upload.single('image'), async (req, res) => {
+//     const username = req.session.username;
+//     if (!username) {
+//         req.flash('info', "You are not logged in");
+//         return res.redirect('/login');
+//     }
+//     console.log('uploaded data', req.body);
+//     console.log('file', req.file);
+//     // insert file data into mongodb
+//     const db = await Connection.open(mongoUri, DBNAME);
+//     const result = await db.collection(EVENTS)
+//           .insertOne({title: req.body.title,
+//                       owner: username,
+//                       //base on event's attribtues
+//                       Image_path: '/uploads/'+req.file.filename});
+//     console.log('insertOne result', result);
+//     // always nice to confirm with the user
+//     req.flash('info', 'file uploaded');
+//     return res.redirect('/');
+// });
 
 //search events on explore page
-app.get('/search', async (req, res) => {
-    //const db = await Connection.open(mongoUri, DBNAME);
-    //let events = await db.collection(EVENTS).find({}).toArray();
-    //return res.render('explore.ejs', { username: req.session.uid, events });
+app.get('/search/', async (req, res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    const entry = req.query.entry;
+    const kind = req.query.kind; //assuming that the kind options correspond with the keys in database
+    const date = req.query.date;
+    let events = await db.collection(EVENTS).find().toArray();
+
+    if ((entry && !kind) || (!entry && kind)){
+        req.flash("info", `please provide corresponding kind for your search query`);
+        return res.render("explore.ejs", { username: req.session.uid, events})
+    }
+    if (kind == "person") {
+        let events = await db.collection(USERS).find({}).toArray();
+        console.log("in person")
+        //todo austen - if we want to let people search by hostname need to update database
+    } else {
+        if (kind){
+            let kpattern = new RegExp(entry, "i");
+            let dpattern = new RegExp(date, "i");
+            let query = {date: { $regex: dpattern }}; //todo austen - check that this works
+            query[kind] = { $regex: kpattern };
+            console.log("here is query", query)
+            events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+            console.log("here are events", events)
+        } else {
+            let dpattern = new RegExp(date, "i");
+            let query = {date: { $regex: dpattern }}; //todo austen - check that this works
+            console.log("here is query", query)
+            events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+            console.log("here are events", events)
+        }
+    }
+    return res.render('explore.ejs', { username: req.session.uid, events: events });
 })
 
 //filters events on explore page
 app.get('/filter', async (req, res) => {
-    //const db = await Connection.open(mongoUri, DBNAME);
-    //let events = await db.collection(EVENTS).find({}).toArray();
-    //return res.render('explore.ejs', { username: req.session.uid, events });
+    const db = await Connection.open(mongoUri, DBNAME);
+    const age = req.query.age
+    const food = req.query.food
+    const onCampus = req.query.onCampus
+    const offCampus = req.query.offCampus
+    const sports = req.query.sports
+    const org = req.query.org
+   
+
+    const tags = [age, food, onCampus, offCampus, sports, org].filter(value => value !== '');
+    //const tags = ['fun']
+    let query = {};
+    if (tags.length > 0) {
+        query.tags = { $in: tags };
+    }
+
+    let events = await db.collection(EVENTS).find(query).toArray();
+    return res.render('explore.ejs', { username: req.session.uid, events });
 })
 
 
