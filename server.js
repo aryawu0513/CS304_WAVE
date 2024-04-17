@@ -337,9 +337,13 @@ app.get('/search/', async (req, res) => {
         return res.render("explore.ejs", { username: req.session.uid, events})
     }
     if (kind == "person") {
-        let events = await db.collection(USERS).find({}).toArray();
-        console.log("in person")
-        //todo austen - if we want to let people search by hostname need to update database
+        console.log("in person---------")
+        events = [];
+        console.log("set events to", events);
+        let pattern = new RegExp(entry, "i");
+        console.log("here is query", {name: { $regex: pattern }});
+        events = await db.collection(EVENTS).find({ nameOfOrganizer: { $regex: pattern }}).toArray();
+        
     } else {
         if (kind){
             let kpattern = new RegExp(entry, "i");
@@ -357,6 +361,7 @@ app.get('/search/', async (req, res) => {
             console.log("here are events", events)
         }
     }
+    console.log("heres events", events)
     return res.render('explore.ejs', { username: req.session.uid, events: events });
 })
 
