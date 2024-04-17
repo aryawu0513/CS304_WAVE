@@ -9,23 +9,18 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
-  <h1>Welcome to WAVE, a place to find out what's happening on campus</h2>
-    <h2>Login:</h2>
+    <h2>Register:</h2>
   <p>
-    <form action="/login" method="POST">
+    <form action="/set-uid/" method="POST">
         <label> Username
             <input type="text" name="username" placeholder="ww100">
         </label>
         <label> Password
             <input type="text" name="password" placeholder="********">
         </label>
-      <button type="submit">login</button>
-    </form>
-    <form action="/register" method="GET">
-      <button>create an account</button>
+      <button type="submit">register</button>
     </form>
   </p>
-
 
     <p>You have visited <%= visits %> times.</p>
 
