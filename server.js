@@ -258,7 +258,9 @@ app.post('/logout', (req,res) => {
 
 app.get('/addevent/', (req, res) => {
     console.log('get addevent form');
-    return res.render('addevent.ejs', {action: '/addevent/', data: req.query });
+    //waiting to have uid login fixed. rightnow it is undefined
+    console.log({ userid: req.session.uid})
+    return res.render('addevent.ejs', {action: '/addevent/', data: req.query});//userid: req.session.uid
 });
 
 async function findTotalEvents() {
@@ -272,8 +274,8 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('uploaded data', req.body);
     console.log('image', req.file);
     //insert file data into mongodb
-    const { eventName, idOrganizer, date, startTime,endTime,location,tags } = req.body;
-    if (!eventName || !idOrganizer  ||!date ||!startTime ||!endTime ||!location){
+    const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+    if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
         req.flash('error', 'Missing Input');
         return res.render("addevent.ejs",{data: req.body})
     }
@@ -282,10 +284,10 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
     const eventid = await findTotalEvents() + 1;
     console.log("eventid",eventid)
     const eventData = {
-        // userid: req.session.uid,
         eventId: eventid,
         eventName: eventName,
-        idOrganizer: idOrganizer,
+        idOrganizer: req.session.uid,
+        nameOfOrganizer:nameOfOrganizer,
         location: location,
         date: date,
         startTime: startTime,
