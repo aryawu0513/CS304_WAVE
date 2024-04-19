@@ -139,9 +139,15 @@ app.get('/explore', async (req, res) => {
 });
 
 
-app.get('/myevent', (req,res) => {
-    return res.render('myevent.ejs', {username: req.session.username});
+app.get('/myevent', async (req,res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    // this loads all events
+    let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
+    // let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
+    console.log("here are your events", myevents)
+    return res.render('myevent.ejs', { username: req.session.username, events: myevents })
   });
+
 
 app.get('/profile', (req,res) => {
     return res.render('profile.ejs', {username: req.session.username});
