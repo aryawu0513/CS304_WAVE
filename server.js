@@ -8,6 +8,8 @@
 // standard modules, loaded from node_modules
 const path = require('path');
 require("dotenv").config({ path: path.join(process.env.HOME, '.cs304env')});
+const counter = require('./counter-utils.js')
+const { add } = require('./insert');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const morgan = require('morgan');
@@ -22,6 +24,7 @@ const multer = require('multer');
 const { Connection } = require('./connection');
 const cs304 = require('./cs304');
 const { start } = require('repl');
+const { setTheUsername } = require('whatwg-url');
 
 // Create and configure the app
 
@@ -136,9 +139,15 @@ app.get('/explore', async (req, res) => {
 });
 
 
-app.get('/myevent', (req,res) => {
-    return res.render('myevent.ejs', {username: req.session.username});
+app.get('/myevent', async (req,res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    // this loads all events
+    let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
+    // let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
+    console.log("here are your events", myevents)
+    return res.render('myevent.ejs', { username: req.session.username, events: myevents })
   });
+
 
 app.get('/profile', (req,res) => {
     return res.render('profile.ejs', {username: req.session.username});
@@ -258,7 +267,9 @@ app.post('/logout', (req,res) => {
 
 app.get('/addevent/', (req, res) => {
     console.log('get addevent form');
-    return res.render('addevent.ejs', {action: '/addevent/', data: req.query });
+    //waiting to have uid login fixed. rightnow it is undefined
+    console.log({ userid: req.session.uid})
+    return res.render('addevent.ejs', {action: '/addevent/', data: req.query});//userid: req.session.uid
 });
 
 async function findTotalEvents() {
@@ -267,25 +278,60 @@ async function findTotalEvents() {
     return totalEvents
 }
 
+// app.post('/addevent', upload.single('image'), async (req, res) => {
+//     console.log('post a new event to the database');
+//     console.log('uploaded data', req.body);
+//     console.log('image', req.file);
+//     //insert file data into mongodb
+//     const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+//     if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
+//         req.flash('error', 'Missing Input');
+//         return res.render("addevent.ejs",{data: req.body})
+//     }
+//     const db = await Connection.open(mongoUri, DBNAME);
+//     const eventsdb = db.collection(EVENTS);
+//     const eventid = await findTotalEvents() + 1;
+//     console.log("eventid",eventid)
+//     const eventData = {
+//         eventId: eventid,
+//         eventName: eventName,
+//         idOrganizer: req.session.uid,
+//         nameOfOrganizer:nameOfOrganizer,
+//         location: location,
+//         date: date,
+//         startTime: startTime,
+//         endTime: endTime,
+//         image: ['/uploads/' + req.file.filename],     
+//         tags: tags,
+//         attendees:[],
+//         venmo: '',
+//         gcal: '',
+//         spotify: ''
+//     };
+//     const result = await eventsdb.insertOne(eventData);
+//     console.log('insertOne result', result);
+//     return res.redirect('/myevent');
+// });
+
 app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
     console.log('uploaded data', req.body);
     console.log('image', req.file);
     //insert file data into mongodb
-    const { eventName, idOrganizer, date, startTime,endTime,location,tags } = req.body;
-    if (!eventName || !idOrganizer  ||!date ||!startTime ||!endTime ||!location){
+    const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+    if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
         req.flash('error', 'Missing Input');
         return res.render("addevent.ejs",{data: req.body})
     }
     const db = await Connection.open(mongoUri, DBNAME);
-    const eventsdb = db.collection(EVENTS);
-    const eventid = await findTotalEvents() + 1;
-    console.log("eventid",eventid)
+    
+    // const eventsdb = db.collection(EVENTS);
+    // const eventid = await findTotalEvents() + 1;
+    // console.log("eventid",eventid)
     const eventData = {
-        // userid: req.session.uid,
-        eventId: eventid,
         eventName: eventName,
-        idOrganizer: idOrganizer,
+        idOrganizer: req.session.uid,
+        nameOfOrganizer:nameOfOrganizer,
         location: location,
         date: date,
         startTime: startTime,
@@ -297,10 +343,12 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
         gcal: '',
         spotify: ''
     };
-    const result = await eventsdb.insertOne(eventData);
+    const result = await add(db, 'events', eventData)
+    // const result = await eventsdb.insertOne(eventData);
     console.log('insertOne result', result);
     return res.redirect('/myevent');
 });
+
 
 // app.get('/staffList/', async (req, res) => {
 //     const db = await Connection.open(mongoUri, WMDB);
@@ -344,9 +392,13 @@ app.get('/search/', async (req, res) => {
         return res.render("explore.ejs", { username: req.session.uid, events})
     }
     if (kind == "person") {
-        let events = await db.collection(USERS).find({}).toArray();
-        console.log("in person")
-        //todo austen - if we want to let people search by hostname need to update database
+        console.log("in person---------")
+        events = [];
+        console.log("set events to", events);
+        let pattern = new RegExp(entry, "i");
+        console.log("here is query", {name: { $regex: pattern }});
+        events = await db.collection(EVENTS).find({ nameOfOrganizer: { $regex: pattern }}).toArray();
+        
     } else {
         if (kind){
             let kpattern = new RegExp(entry, "i");
@@ -364,6 +416,7 @@ app.get('/search/', async (req, res) => {
             console.log("here are events", events)
         }
     }
+    console.log("heres events", events)
     return res.render('explore.ejs', { username: req.session.uid, events: events });
 })
 
@@ -388,6 +441,21 @@ app.get('/filter', async (req, res) => {
     let events = await db.collection(EVENTS).find(query).toArray();
     return res.render('explore.ejs', { username: req.session.uid, events });
 })
+
+app.post('/rsvp/', async (req, res) => {
+    let username = req.session.username || 'unknown';
+    let eventId = req.params.eventId;
+    const db = await Connection.open(mongoUri, DBNAME);
+    // add user id to rsvp in event
+    await db.collection(EVENTS).updateOne( { eventId: eventId }, { $addToSet: { attendees: username } } )
+
+    // add event id to rsvp in user
+    await db.collection(USERS).updateOne( { username: username }, { $addToSet: { rsvp: eventId } } )
+
+    let events = await db.collection(EVENTS).find().toArray();
+    return res.render('explore.ejs', { username: username, events: events });
+
+  });
 
 
 // ================================================================
