@@ -8,6 +8,8 @@
 // standard modules, loaded from node_modules
 const path = require('path');
 require("dotenv").config({ path: path.join(process.env.HOME, '.cs304env')});
+const counter = require('./counter-utils.js')
+const { add } = require('./insert');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const morgan = require('morgan');
@@ -269,6 +271,41 @@ async function findTotalEvents() {
     return totalEvents
 }
 
+// app.post('/addevent', upload.single('image'), async (req, res) => {
+//     console.log('post a new event to the database');
+//     console.log('uploaded data', req.body);
+//     console.log('image', req.file);
+//     //insert file data into mongodb
+//     const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+//     if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
+//         req.flash('error', 'Missing Input');
+//         return res.render("addevent.ejs",{data: req.body})
+//     }
+//     const db = await Connection.open(mongoUri, DBNAME);
+//     const eventsdb = db.collection(EVENTS);
+//     const eventid = await findTotalEvents() + 1;
+//     console.log("eventid",eventid)
+//     const eventData = {
+//         eventId: eventid,
+//         eventName: eventName,
+//         idOrganizer: req.session.uid,
+//         nameOfOrganizer:nameOfOrganizer,
+//         location: location,
+//         date: date,
+//         startTime: startTime,
+//         endTime: endTime,
+//         image: ['/uploads/' + req.file.filename],     
+//         tags: tags,
+//         attendees:[],
+//         venmo: '',
+//         gcal: '',
+//         spotify: ''
+//     };
+//     const result = await eventsdb.insertOne(eventData);
+//     console.log('insertOne result', result);
+//     return res.redirect('/myevent');
+// });
+
 app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
     console.log('uploaded data', req.body);
@@ -280,11 +317,11 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
         return res.render("addevent.ejs",{data: req.body})
     }
     const db = await Connection.open(mongoUri, DBNAME);
-    const eventsdb = db.collection(EVENTS);
-    const eventid = await findTotalEvents() + 1;
-    console.log("eventid",eventid)
+    
+    // const eventsdb = db.collection(EVENTS);
+    // const eventid = await findTotalEvents() + 1;
+    // console.log("eventid",eventid)
     const eventData = {
-        eventId: eventid,
         eventName: eventName,
         idOrganizer: req.session.uid,
         nameOfOrganizer:nameOfOrganizer,
@@ -299,10 +336,12 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
         gcal: '',
         spotify: ''
     };
-    const result = await eventsdb.insertOne(eventData);
+    const result = await add(db, 'events', eventData)
+    // const result = await eventsdb.insertOne(eventData);
     console.log('insertOne result', result);
     return res.redirect('/myevent');
 });
+
 
 // app.get('/staffList/', async (req, res) => {
 //     const db = await Connection.open(mongoUri, WMDB);

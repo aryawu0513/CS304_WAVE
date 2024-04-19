@@ -29,7 +29,7 @@
       <p><strong>End Time:</strong> <%= evt?.endTime %></p>
       <p><strong>Image:</strong></p>
       <img src="<%= evt?.image[0] %>" alt="Event Image" width="300">
-      <p><strong>Tags:</strong> <%= evt?.tags.join(', ') %></p>
+      <p><strong>Tags:</strong> <%= Array.isArray(evt.tags) ? (evt.tags.length === 1 ? evt.tags[0] : evt.tags.join(', ')) : evt.tags %></p>
       <p><strong>Attendees:</strong> <%= evt?.attendees.join(', ') %></p>
       <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
       <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
