@@ -444,13 +444,20 @@ app.get('/filter', async (req, res) => {
 
 app.post('/rsvp/', async (req, res) => {
     let username = req.session.username || 'unknown';
-    let eventId = req.params.eventId;
+    console.log("username", username)
+    let eventId = req.body.eventId;
+    console.log("eventID", eventId)
     const db = await Connection.open(mongoUri, DBNAME);
     // add user id to rsvp in event
     await db.collection(EVENTS).updateOne( { eventId: eventId }, { $addToSet: { attendees: username } } )
-
+    let event = await db.collection(EVENTS).find( { eventId: eventId } ).toArray();
+   
     // add event id to rsvp in user
     await db.collection(USERS).updateOne( { username: username }, { $addToSet: { rsvp: eventId } } )
+    let user = await db.collection(USERS).find( { username: username } ).toArray();
+    
+    console.log("event", event);
+    console.log("user", user);
 
     let events = await db.collection(EVENTS).find().toArray();
     return res.render('explore.ejs', { username: username, events: events });
