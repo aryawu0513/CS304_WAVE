@@ -53,19 +53,19 @@ db.collection('users').deleteOne({userId: userId });
 */
 async function main() {
     const db = await Connection.open(mongoUri, myDBName);
-    await resetDB(db, 'counters');
+    /* await resetDB(db, 'counters');
     counter.init(db.collection('counters'), 'users');
     counter.init(db.collection('counters'), 'events');
 
     await resetDB(db, 'users');
     await resetDB(db, 'events');
-    await add(db, 'users', {name: "Maria del Granado", wellesleyEmail: 'md103@wellesley.edu', friends: [2,3,4], 
+    await add(db, 'users', {name: "Maria del Granado", username: 'majo', hash:'majo', wellesleyEmail: 'md103@wellesley.edu', friends: [2,3,4], 
     rsvp:[1,2], hosting: [1]});
-    await add(db, 'users', {name: "Arya Wu", wellesleyEmail: 'zw102@wellesley.edu', friends: [1,3,4], rsvp:[1,2], 
+    await add(db, 'users', {name: "Arya Wu", username:'arya', hash:'arya', wellesleyEmail: 'zw102@wellesley.edu', friends: [1,3,4], rsvp:[1,2], 
     hosting: [2]});
-    await add(db, 'users', {name: "Bella Steedly", wellesleyEmail: 'bs102@wellesley.edu', friends: [1,2,4], 
+    await add(db, 'users', {name: "Bella Steedly", username: 'bella', hash:'bella', wellesleyEmail: 'bs102@wellesley.edu', friends: [1,2,4], 
     rsvp:[2,3], hosting: [3]});
-    await add(db, 'users', {name: "Ella Boodell", wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[3], 
+    await add(db, 'users', {name: "Ella Boodell", username:'ella', hash:'ella', wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[3], 
     hosting: []});
 
     //await Connection.open(mongoUri, myDBName);
@@ -80,12 +80,17 @@ async function main() {
 
     await add(db, 'events', {eventName: "Marshamaglow", idOrganizer:3, nameOfOrganizer: 'Bella Steedly',location: 'Lulu Firepit', date: '2024-04-16',
     startTime:'7:00 PM', endTime:'9:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus'],
-    attendees: [3], venmo: '', gcal:'', spotify:''});
+    attendees: [3], venmo: '', gcal:'', spotify:''}); */
 
     const eventsCursor = await db.collection('events').find({});
         const events = await eventsCursor.toArray();
         console.log("Events:");
         console.log(events);
+    
+    const userCursor = await db.collection('users').find({});
+    const users = await userCursor.toArray();
+    console.log("Users:");
+    console.log(users);
 
     await Connection.close();
 }
