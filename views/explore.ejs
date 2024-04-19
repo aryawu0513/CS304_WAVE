@@ -36,6 +36,10 @@
           <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
           <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
           <p><strong>Spotify:</strong> <%= evt?.spotify %></p>
+          <form method="POST" action="/rsvp">
+            <label>RSVP to this event: <input type="submit" value="yes"></label>
+            <input type="hidden" name="eventId" value="<%= evt?.eventId %>">
+          </form>
         </li>
         <% }); %>
       </ol>

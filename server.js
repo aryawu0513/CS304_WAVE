@@ -22,6 +22,7 @@ const multer = require('multer');
 const { Connection } = require('./connection');
 const cs304 = require('./cs304');
 const { start } = require('repl');
+const { setTheUsername } = require('whatwg-url');
 
 // Create and configure the app
 
@@ -395,6 +396,21 @@ app.get('/filter', async (req, res) => {
     let events = await db.collection(EVENTS).find(query).toArray();
     return res.render('explore.ejs', { username: req.session.uid, events });
 })
+
+app.post('/rsvp/', async (req, res) => {
+    let username = req.session.username || 'unknown';
+    let eventId = req.params.eventId;
+    const db = await Connection.open(mongoUri, DBNAME);
+    // add user id to rsvp in event
+    await db.collection(EVENTS).updateOne( { eventId: eventId }, { $addToSet: { attendees: username } } )
+
+    // add event id to rsvp in user
+    await db.collection(USERS).updateOne( { username: username }, { $addToSet: { rsvp: eventId } } )
+
+    let events = await db.collection(EVENTS).find().toArray();
+    return res.render('explore.ejs', { username: username, events: events });
+
+  });
 
 
 // ================================================================
