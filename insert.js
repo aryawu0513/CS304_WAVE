@@ -53,7 +53,7 @@ db.collection('users').deleteOne({userId: userId });
 */
 async function main() {
     const db = await Connection.open(mongoUri, myDBName);
-    /* await resetDB(db, 'counters');
+    await resetDB(db, 'counters');
     counter.init(db.collection('counters'), 'users');
     counter.init(db.collection('counters'), 'events');
 
@@ -70,26 +70,16 @@ async function main() {
 
     //await Connection.open(mongoUri, myDBName);
     await add(db, 'events', {eventName: "Latinx Culture Show", idOrganizer:1, nameOfOrganizer: 'Maria del Granado',location: 'Casenove Hall', date: '2024-08-15',
-    startTime:'1:00 AM', endTime:'2:00 PM',image: ['https://ttn-media.s3.amazonaws.com/2019/09/24195005/Latinx-Online-678x381.png'], tags: ['onCampus', 'org'],
+    startTime:'07:30', endTime:'14:00',image: ['https://ttn-media.s3.amazonaws.com/2019/09/24195005/Latinx-Online-678x381.png'], tags: ['onCampus', 'org'],
     attendees: [1,2], venmo: '', gcal:'', spotify:''});
 
     await add(db, 'events', {eventName: "Patriot's Day Picnic", idOrganizer:2, nameOfOrganizer: 'Arya Wu', location: 'Munger Meadows', date: '2024-05-15',
-    startTime:'11:30 AM', endTime:'2:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus','sports'],
+    startTime:'11:30', endTime:'14:00', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus','sports'],
     attendees: [1, 2,3,4], venmo: '', gcal:'', spotify:''});
 
     await add(db, 'events', {eventName: "Marshamaglow", idOrganizer:3, nameOfOrganizer: 'Bella Steedly',location: 'Lulu Firepit', date: '2024-04-16',
-    startTime:'7:00 PM', endTime:'9:00 PM', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus'],
-    attendees: [3], venmo: '', gcal:'', spotify:''}); */
-
-    const eventsCursor = await db.collection('events').find({});
-        const events = await eventsCursor.toArray();
-        console.log("Events:");
-        console.log(events);
-    
-    const userCursor = await db.collection('users').find({});
-    const users = await userCursor.toArray();
-    console.log("Users:");
-    console.log(users);
+    startTime:'19:00', endTime:'21:00', image: ['https://media.wired.com/photos/5cae8365eaad993a02ff5d1c/master/pass/bostonmarathon-947031426.jpg'], tags: ['food', 'onCampus'],
+    attendees: [3], venmo: '', gcal:'', spotify:''}); 
 
     await Connection.close();
 }

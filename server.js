@@ -142,7 +142,7 @@ app.get('/explore', async (req, res) => {
 app.get('/myevent', async (req,res) => {
     const db = await Connection.open(mongoUri, DBNAME);
     // this loads all events
-    let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
+    let myevents = await db.collection(EVENTS).find().toArray();
     // let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
     console.log("here are your events", myevents)
     return res.render('myevent.ejs', { username: req.session.username, events: myevents })
@@ -278,41 +278,6 @@ async function findTotalEvents() {
     return totalEvents
 }
 
-// app.post('/addevent', upload.single('image'), async (req, res) => {
-//     console.log('post a new event to the database');
-//     console.log('uploaded data', req.body);
-//     console.log('image', req.file);
-//     //insert file data into mongodb
-//     const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
-//     if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
-//         req.flash('error', 'Missing Input');
-//         return res.render("addevent.ejs",{data: req.body})
-//     }
-//     const db = await Connection.open(mongoUri, DBNAME);
-//     const eventsdb = db.collection(EVENTS);
-//     const eventid = await findTotalEvents() + 1;
-//     console.log("eventid",eventid)
-//     const eventData = {
-//         eventId: eventid,
-//         eventName: eventName,
-//         idOrganizer: req.session.uid,
-//         nameOfOrganizer:nameOfOrganizer,
-//         location: location,
-//         date: date,
-//         startTime: startTime,
-//         endTime: endTime,
-//         image: ['/uploads/' + req.file.filename],     
-//         tags: tags,
-//         attendees:[],
-//         venmo: '',
-//         gcal: '',
-//         spotify: ''
-//     };
-//     const result = await eventsdb.insertOne(eventData);
-//     console.log('insertOne result', result);
-//     return res.redirect('/myevent');
-// });
-
 app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
     console.log('uploaded data', req.body);
@@ -347,6 +312,62 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
     // const result = await eventsdb.insertOne(eventData);
     console.log('insertOne result', result);
     return res.redirect('/myevent');
+});
+
+// Edit Event Form
+app.get('/editEvent', async (req, res) => {
+    // Retrieve the event ID from the request query
+    const eventId = parseInt(req.query.eventId);
+    // Delete the event from the database using the event ID
+    const db = await Connection.open(mongoUri, DBNAME);
+    const event = await db.collection(EVENTS).findOne({eventId: eventId })
+    // Render a form to edit the event using the event ID
+    console.log("THIS IS THE EVENT TO CHANGE:",event)
+    res.render('editevent.ejs', { event:event });
+});
+
+// Handle Edit Event Form Submission
+app.post('/editEvent', async (req, res) => {
+    // Retrieve the event ID and updated event data from the request body
+    const eventId = parseInt(req.body.eventId);
+    const updatedEvent = {
+        eventId : eventId,
+        eventName: req.body.eventName,
+        location: req.body.location,
+        date: req.body.date,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
+        tags: req.body.tags.split(','), // Assuming tags are comma-separated
+        attendees: req.body.attendees.split(','), // Assuming attendees are comma-separated
+        venmo: req.body.venmo,
+        gcal: req.body.gcal,
+        spotify: req.body.spotify
+    };
+
+    console.log(updatedEvent)
+    const db = await Connection.open(mongoUri, DBNAME);
+    const result = await db.collection(EVENTS).updateOne({ eventId: eventId}, { $set: updatedEvent });
+    
+    console.log("UPDATE RESULT:",result);
+    res.redirect('/myevent');
+});
+
+// Delete Event
+app.post('/deleteEvent', async (req, res) => {
+    // Retrieve the event ID from the request body
+    const eventId = parseInt(req.body.eventId);
+    // Delete the event from the database using the event ID
+    const db = await Connection.open(mongoUri, DBNAME);
+    const result = await db.collection(EVENTS).deleteOne({eventId: eventId });
+    // if (result.deletedCount === 1) {
+    //     req.flash('info', 'Event deleted successfully');
+    // } else {
+    //     req.flash('error', 'Failed to delete event');
+    // }
+    console.log("DELETE RESULT:",result)
+
+    // Redirect to the page displaying all events
+    res.redirect('/myevent');
 });
 
 

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Events</title>
+  <link rel='stylesheet' href="/styles.css">
+  <script src="/main.js"></script>
+</head>
+
+<body>
+  <%- include("partials/navbar.ejs") %>
+
+  <h1>Editing one events <%= event.eventName %></h1>
+
+    <!-- <form action="/updateEvent" method="POST">
+        <input type="hidden" name="eventId" value="<%= event.eventId %>">
+        <label for="eventName">Event Name:</label>
+        <input type="text" id="eventName" name="eventName" value="<%= event.eventName %>" placeholder="<%= event.eventName ? '' : event.eventName %>"><br>
+
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" value="<%= event.location %>"><br>
+        
+        <button type="submit">Save Changes</button>
+    </form> -->
+    <form action="/editEvent" method="POST">
+      <input type="hidden" name="eventId" value="<%= event.eventId %>">
+      <label for="eventName">Event Name:</label>
+      <input type="text" id="eventName" name="eventName" value="<%= event.eventName %>" placeholder="<%= event.eventName ? '' : event.eventName %>"><br>
+  
+      <label for="location">Location:</label>
+      <input type="text" id="location" name="location" value="<%= event.location %>"><br>
+  
+      <label for="date">Date:</label>
+      <input type="date" id="date" name="date" value="<%= event.date %>"><br>
+  
+      <label for="startTime">Start Time:</label>
+      <input type="time" id="startTime" name="startTime" value="<%= event.startTime %>"><br>
+  
+      <label for="endTime">End Time:</label>
+      <input type="time" id="endTime" name="endTime" value="<%= event.endTime %>"><br>
+  
+      <p><img src="<%= event?.image[0] %>" alt="Event Image" width="300"></p>
+
+      <label for="tags">Tags:</label>
+      <input type="text" id="tags" name="tags" value="<%= Array.isArray(event.tags) ? event.tags.join(', ') : event.tags %>"><br>
+  
+      <label for="attendees">Attendees:</label>
+      <input type="text" id="attendees" name="attendees" value="<%= event.attendees.join(', ') %>"><br>
+  
+      <label for="venmo">Venmo:</label>
+      <input type="text" id="venmo" name="venmo" value="<%= event.venmo %>"><br>
+  
+      <label for="gcal">Google Calendar:</label>
+      <input type="text" id="gcal" name="gcal" value="<%= event.gcal %>"><br>
+  
+      <label for="spotify">Spotify:</label>
+      <input type="text" id="spotify" name="spotify" value="<%= event.spotify %>"><br>
+      
+      <button type="submit">Save Changes</button>
+  </form>
+  
+    
+
+  
+
+</body>
+
+</html>

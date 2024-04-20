@@ -32,6 +32,14 @@
       <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
       <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
       <p><strong>Spotify:</strong> <%= evt?.spotify %></p>
+      <form action="/editEvent" method="GET">
+        <input type="hidden" name="eventId" value="<%= evt.eventId %>">
+        <button type="submit">Edit</button>
+      </form>
+      <form action="/deleteEvent" method="POST">
+        <input type="hidden" name="eventId" value="<%= evt.eventId %>">
+        <button type="submit">Delete</button>
+      </form>
     </li>
     <% }); %>
   </ol>
