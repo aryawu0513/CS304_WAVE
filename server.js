@@ -148,10 +148,26 @@ app.get('/myevent', async (req,res) => {
     return res.render('myevent.ejs', { username: req.session.username, events: myevents })
   });
 
+function parseInfo(user) {
+let vars = ['name', 'username', 'wellesleyEmail'];
+vars.forEach((key) => {
+    if (!(key in user)) {
+    user[key] = '';
+    }
+});
+return user;
+}
 
-app.get('/profile', (req,res) => {
-    return res.render('profile.ejs', {username: req.session.username});
-  });
+app.get('/profile', async (req,res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+    
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0])});
+});
+
 app.get('/register', (req, res) => {
     let uid = req.session.uid || 'unknown';
     let visits = req.session.visits || 0;
