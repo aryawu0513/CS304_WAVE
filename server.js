@@ -141,9 +141,7 @@ app.get('/explore', async (req, res) => {
 
 app.get('/myevent', async (req,res) => {
     const db = await Connection.open(mongoUri, DBNAME);
-    // this loads all events
-    let myevents = await db.collection(EVENTS).find().toArray();
-    // let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
+    let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
     console.log("here are your events", myevents)
     return res.render('myevent.ejs', { username: req.session.username, events: myevents })
   });
@@ -152,6 +150,7 @@ app.get('/myevent', async (req,res) => {
 app.get('/profile', (req,res) => {
     return res.render('profile.ejs', {username: req.session.username});
   });
+
 app.get('/register', (req, res) => {
     let uid = req.session.uid || 'unknown';
     let visits = req.session.visits || 0;
@@ -180,12 +179,16 @@ app.post('/set-uid/', async (req, res) => {
         return res.redirect('/')
       }
       const hash = await bcrypt.hash(password, ROUNDS);
-      await db.collection(USERS).insertOne({
+      const userData={
           username: username,
           hash: hash
-      });
-      console.log('successfully joined', username, password, hash);
+      };
+      const result = await add(db, USERS, userData)
+    //   console.log('successfully joined', result);
+      const newUser = await db.collection(USERS).findOne({username: username});
+      const userid = newUser.userId; // Assuming userId is the field for user id
       req.flash('info', 'successfully joined and logged in as ' + username);
+      req.session.uid = userid;
       req.session.username = username;
       req.session.logged_in = true;
       return res.redirect('/explore');
@@ -195,24 +198,9 @@ app.post('/set-uid/', async (req, res) => {
     }
   });
 
-// // shows how logins might work via Ajax
-// app.post('/set-uid-ajax/', (req, res) => {
-//     console.log(Object.keys(req.body));
-//     console.log(req.body);
-//     let uid = req.body.uid;
-//     if(!uid) {
-//         res.send({error: 'no uid'}, 400);
-//         return;
-//     }
-//     req.session.uid = req.body.uid;
-//     req.session.logged_in = true;
-//     console.log('logged in via ajax as ', req.body.uid);
-//     res.send({error: false});
-//     return res.redirect('/explore');
-// });
-
 app.post("/login", async (req, res) => {
     try {
+      const userid = req.body.uid;
       const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
@@ -229,6 +217,7 @@ app.post("/login", async (req, res) => {
           return res.redirect('/')
       }
       req.flash('info', 'successfully logged in as ' + username);
+      req.session.uid = userid;
       req.session.username = username;
       req.session.logged_in = true;
       console.log('login as', username);
@@ -242,6 +231,7 @@ app.post("/login", async (req, res) => {
 // conventional non-Ajax logout, so redirects
 app.post('/logout', (req,res) => {
     if (req.session.username) {
+      req.session.uid = false;
       req.session.username = false;
       req.session.logged_in = false;
       req.flash('info', 'You are logged out');
@@ -252,31 +242,11 @@ app.post('/logout', (req,res) => {
     }
   });
 
-// two kinds of forms (GET and POST), both of which are pre-filled with data
-// from previous request, including a SELECT menu. Everything but radio buttons
-
-// app.get('/form/', (req, res) => {
-//     console.log('get form');
-//     return res.render('form.ejs', {action: '/form/', data: req.query });
-// });
-
-// app.post('/form/', (req, res) => {
-//     console.log('post form');
-//     return res.render('form.ejs', {action: '/form/', data: req.body });
-// });
 
 app.get('/addevent/', (req, res) => {
     console.log('get addevent form');
-    //waiting to have uid login fixed. rightnow it is undefined
-    console.log({ userid: req.session.uid})
     return res.render('addevent.ejs', {action: '/addevent/', data: req.query});//userid: req.session.uid
 });
-
-async function findTotalEvents() {
-    const db = await Connection.open(mongoUri, DBNAME);
-    const totalEvents = await db.collection(EVENTS).countDocuments();
-    return totalEvents
-}
 
 app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
