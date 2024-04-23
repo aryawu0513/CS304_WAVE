@@ -25,7 +25,7 @@ async function add(db, coll, dict) {
         dict.eventId = id;
     }
     let result = db.collection(coll).insertOne(dict);
-return result;
+    return result;
 }
 
 
@@ -84,6 +84,6 @@ async function main() {
     await Connection.close();
 }
 main();
-module.exports = {
-    add
-};
+// module.exports = {
+//     add
+// };
