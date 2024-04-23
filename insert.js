@@ -84,6 +84,6 @@ async function main() {
     await Connection.close();
 }
 main();
-module.exports = {
-    add
-};
+// module.exports = {
+//     add
+// };

@@ -9,7 +9,7 @@
 const path = require('path');
 require("dotenv").config({ path: path.join(process.env.HOME, '.cs304env')});
 const counter = require('./counter-utils.js')
-const { add } = require('./insert');
+// const { add } = require('./insert');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const morgan = require('morgan');
@@ -119,6 +119,18 @@ const EVENTS = 'events'
 //     console.log('len', all.length, 'first', all[0]);
 //     return res.render('list.ejs', {listDescription: 'all events', list: all});
 // });
+async function add(db, coll, dict) {
+    const id = await counter.incr(db.collection('counters'), coll);
+    // update userId if adding user
+    if (coll == "users"){
+        dict.userId = id;
+    }
+    else {
+        dict.eventId = id;
+    }
+    let result = db.collection(coll).insertOne(dict);
+    return result;
+}
 
 // main page. This shows the use of session cookies
 app.get('/', (req, res) => {
