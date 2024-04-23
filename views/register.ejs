@@ -11,9 +11,15 @@
 <body>
     <h2>Register:</h2>
   <p>
-    <form action="/set-uid/" method="POST">
+    <form action="/register" method="POST">
+        <label> Name
+            <input type="text" name="name" placeholder="Wendy Wellesley">
+        </label>
         <label> Username
             <input type="text" name="username" placeholder="ww100">
+        </label>
+        <label> Email
+            <input type="text" name="email" placeholder="ww100@wellesley.edu">
         </label>
         <label> Password
             <input type="text" name="password" placeholder="********">
@@ -21,8 +27,6 @@
       <button type="submit">register</button>
     </form>
   </p>
-
-    <p>You have visited <%= visits %> times.</p>
 
     <!-- load local js -->
     <script src="/main.js"></script>

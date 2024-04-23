@@ -120,11 +120,8 @@ const EVENTS = 'events'
 // main page. This shows the use of session cookies
 app.get('/', (req, res) => {
     let uid = req.session.uid || 'unknown';
-    let visits = req.session.visits || 0;
-    visits++;
-    req.session.visits = visits;
     console.log('uid', uid);
-    return res.render('index.ejs', {uid, visits});
+    return res.render('index.ejs', {uid});
 });
 
 app.get('/explore', async (req, res) => {
@@ -144,63 +141,67 @@ app.get('/profile', (req,res) => {
     return res.render('profile.ejs', {username: req.session.username});
   });
 app.get('/register', (req, res) => {
-    let uid = req.session.uid || 'unknown';
-    let visits = req.session.visits || 0;
-    visits++;
-    req.session.visits = visits;
-    return res.render('register.ejs', {uid, visits});
+    const uid = req.session.uid || 'unknown'; 
+    console.log("This is uid: ", uid)
+    return res.render('register.ejs', {uid});
 })
 
-// shows how logins might work by setting a value in the session
-// This is a conventional, non-Ajax, login, so it redirects to main page 
-// app.post('/set-uid/', (req, res) => {
-//     console.log('in set-uid');
-//     req.session.uid = req.body.uid;
-//     req.session.logged_in = true;
-//     res.redirect('/explore');
-// });
+async function add(db, coll, dict) {
+  const id = await counter.incr(db.collection('counters'), coll);
+  // update userId if adding user
+  if (coll == "users"){
+      dict.userId = id;
+  }
+  else {
+      dict.eventId = id;
+  }
+  let result = db.collection(coll).insertOne(dict);
+return result;
+}
 
-app.post('/set-uid/', async (req, res) => {
+
+app.post('/register', async (req, res) => {
     try {
+      const name = req.body.name;
+      console.log("name: ", name);
+      const email = req.body.email;
+      console.log("email: ", email);
       const username = req.body.username;
+      console.log("username: ", username);
       const password = req.body.password;
+      console.log("password: ", password);
       const db = await Connection.open(mongoUri, DBNAME);
-      var existingUser = await db.collection(USERS).findOne({username: username});
-      if (existingUser) {
-        req.flash('error', "Login already exists - please try logging in instead.");
-        return res.redirect('/')
+
+      var emailUsed = await db.collection(USERS).findOne({wellesleyEmail: email});
+      console.log("EMAILUSED: ", emailUsed);
+      if (emailUsed) {
+        req.flash('error', "This email has already been used - please try logging in instead.");
+        console.log("early return");
+        return res.redirect('/');
+      }
+      var usernameUsed = await db.collection(USERS).findOne({username: username});
+      if (usernameUsed) {
+        req.flash('error', "This username has already been used - please choose a different one.");
+        console.log("early return");
+        return res.redirect('/register');
       }
       const hash = await bcrypt.hash(password, ROUNDS);
-      await db.collection(USERS).insertOne({
-          username: username,
-          hash: hash
-      });
-      console.log('successfully joined', username, password, hash);
+      const userData = {name: name, username: username, wellesleyEmail: email, hash: hash}
+      const result = await add(db, USERS, userData);
+      console.log(result);
+      console.log('successfully joined', username, hash);
       req.flash('info', 'successfully joined and logged in as ' + username);
+      req.session.uid = id;
+      console.log("set userId");
       req.session.username = username;
       req.session.logged_in = true;
       return res.redirect('/explore');
     } catch (error) {
       req.flash('error', `Form submission error: ${error}`);
-      return res.redirect('/')
+      console.log("there was an issue");
+      return res.redirect('/');
     }
   });
-
-// // shows how logins might work via Ajax
-// app.post('/set-uid-ajax/', (req, res) => {
-//     console.log(Object.keys(req.body));
-//     console.log(req.body);
-//     let uid = req.body.uid;
-//     if(!uid) {
-//         res.send({error: 'no uid'}, 400);
-//         return;
-//     }
-//     req.session.uid = req.body.uid;
-//     req.session.logged_in = true;
-//     console.log('logged in via ajax as ', req.body.uid);
-//     res.send({error: false});
-//     return res.redirect('/explore');
-// });
 
 app.post("/login", async (req, res) => {
     try {
