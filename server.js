@@ -195,8 +195,10 @@ app.get('/register', (req, res) => {
 //     res.redirect('/explore');
 // });
 
-app.post('/set-uid/', async (req, res) => {
+app.post('/register', async (req, res) => {
     try {
+      const name = req.body.name;
+      const email = req.body.email;
       const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
@@ -208,6 +210,8 @@ app.post('/set-uid/', async (req, res) => {
       const hash = await bcrypt.hash(password, ROUNDS);
       const userData={
           username: username,
+          name: name, 
+          wellesleyEmail: email,
           hash: hash
       };
       const result = await add(db, USERS, userData)
