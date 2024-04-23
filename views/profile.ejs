@@ -14,6 +14,26 @@
 
   <h1>You are <%= username %>!</h1>
 
+
+  <form method="POST" action="/update/">
+    <table>
+    <tbody>
+    <tr>
+    <td><label for="User">Username</label></td>
+    <td>
+    <input name="username" value="<%= username %>">
+    </td>
+    </tr>
+    <tr>
+      <td><label for="wellesleyEmail">Email</label></td>
+      <td>
+      <input name="wellesleyEmail" value="<%= username %>">
+      </td>
+      </tr>
+    </tbody></table>
+    <input class = "bottomButtons" type="submit" value="update">
+  </form>
+
   <p>
     <form action="/logout" method="POST">
       <button>Logout</button>
