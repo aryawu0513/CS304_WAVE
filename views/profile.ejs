@@ -27,12 +27,25 @@
     <tr>
       <td><label for="wellesleyEmail">Email</label></td>
       <td>
-      <input name="wellesleyEmail" value="<%= username %>">
+      <input name="wellesleyEmail" value="<%= userData.wellesleyEmail%>">
       </td>
-      </tr>
+    </tr>
+    <tr>
+      <td><label for="name">Name</label></td>
+      <td>
+      <input name="name" value="<%= userData.name%>">
+      </td>
+    </tr>
+    <tr>
+      <td><label for="friends">Friends</label></td>
+      <td><%= userData.friends.length%></td>
+    </tr>
     </tbody></table>
     <input class = "bottomButtons" type="submit" value="update">
   </form>
+
+  <h1>Add Friends</h1>
+  <%- include("partials/searchFriends.ejs") %>
 
   <p>
     <form action="/logout" method="POST">

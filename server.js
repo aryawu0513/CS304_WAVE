@@ -159,10 +159,10 @@ app.get('/myevent', async (req,res) => {
   });
 
 function parseInfo(user) {
-let vars = ['name', 'username', 'wellesleyEmail'];
+let vars = ['name', 'username', 'wellesleyEmail', 'friends'];
 vars.forEach((key) => {
     if (!(key in user)) {
-    user[key] = '';
+    user[key] = [];
     }
 });
 return user;
@@ -171,7 +171,7 @@ return user;
 app.get('/profile', async (req,res) => {
     const db = await Connection.open(mongoUri, DBNAME);
     let users = await db.collection(USERS);
-    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1}).toArray();
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
     console.log(data, req.session.username);
     console.log(parseInfo(data[0]));
     
