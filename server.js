@@ -371,6 +371,13 @@ app.post('/deleteEvent', async (req, res) => {
     res.redirect('/myevent');
 });
 
+app.get('/searchFriends', async (req, res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    const entry = req.query.entry;
+    const kind = req.query.kind; 
+    
+});
+
 
 // app.get('/staffList/', async (req, res) => {
 //     const db = await Connection.open(mongoUri, WMDB);
