@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang='en'>
-
 <head>
   <meta charset='utf-8'>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,7 +10,6 @@
 
 <body>
   <%- include("partials/navbar.ejs") %>
-
   <h1>You are <%= username %>!</h1>
 
 
@@ -44,8 +42,24 @@
     <input class = "bottomButtons" type="submit" value="update">
   </form>
 
+  <% function friendDisplay(person){
+    let info = `Name: ${person.name} (Username: ${person.username})`;
+    return info
+    }
+    %>
+
   <h1>Add Friends</h1>
   <%- include("partials/searchFriends.ejs") %>
+
+  <ul>  <% listPeople.forEach( (elt) => { %>
+    <li>
+      <%=friendDisplay(elt)%></label>        
+      <form method="POST" action="/addFriend/">
+        <input type="hidden" name="friendId" value="<%= elt.userId %>">
+        <button type="submit">Add Friend</button>
+      </form></li>
+    <% }); %>
+  </ul>
 
   <p>
     <form action="/logout" method="POST">

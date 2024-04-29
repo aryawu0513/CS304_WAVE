@@ -175,7 +175,7 @@ app.get('/profile', async (req,res) => {
     console.log(data, req.session.username);
     console.log(parseInfo(data[0]));
     
-    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0])});
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
 });
 
 app.get('/register', (req, res) => {
@@ -353,6 +353,30 @@ app.post('/editEvent', async (req, res) => {
     res.redirect('/myevent');
 });
 
+app.post('/addFriend/', async (req, res) =>{
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+
+    let friendId = parseInt(req.body.friendId);
+    let userFriends = data[0].friends;
+    console.log(friendId);
+
+    if (!(friendId in userFriends)){
+        await users.updateOne(
+            { username: req.session.username },
+            { $addToSet: { friends: friendId } }
+        );
+    }
+    data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data[0].friends);
+    
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
+    
+})
+
 // Delete Event
 app.post('/deleteEvent', async (req, res) => {
     // Retrieve the event ID from the request body
@@ -373,8 +397,37 @@ app.post('/deleteEvent', async (req, res) => {
 
 app.get('/searchFriends', async (req, res) => {
     const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
     const entry = req.query.entry;
     const kind = req.query.kind; 
+
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+    
+
+    console.log(entry, kind, "entyr and kind");
+
+    if ((entry && !kind) || (!entry && kind)){
+        req.flash("info", `please provide corresponding kind for your search query`);
+        return res.redirect("/profile")
+    }
+
+    if (kind == "name"){
+        var listPerson = await users
+        .find({'name': {'$regex': entry, '$options': 'i'}}) //find based on input term
+        .toArray();
+    }
+    else if (kind == 'username'){ 
+        var listPerson = await users
+        .find({'username': {'$regex': entry, '$options': 'i'}}) //find based on input term
+        .toArray();
+    }
+
+    console.log('matches', listPerson);
+
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: listPerson});
+
     
 });
 
