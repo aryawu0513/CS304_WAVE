@@ -541,9 +541,34 @@ app.post('/rsvp/', async (req, res) => {
     let events = await db.collection(EVENTS).find().toArray();
     return res.render('explore.ejs', { username: username, events: events });
 
-  });
+});
 
+app.post('/updateProfile/', async (req, res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(req.body, "body");
 
+    // Extract data from req.body and update user info
+    for (const key in req.body) {
+        if (req.body[key] !== '') {
+            data[0][key] = req.body[key];
+        }
+    }
+    // Update user info in the database
+    await users.updateOne(
+        {username: req.session.username},
+        {$set: data[0]}
+    );
+
+    req.session.username = data[0]['username'];
+
+    data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    
+    console.log(data, "data")
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
+
+})
 // ================================================================
 // postlude
 
