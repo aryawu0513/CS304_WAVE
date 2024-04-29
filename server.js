@@ -288,11 +288,20 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('uploaded data', req.body);
     console.log('image', req.file);
     //insert file data into mongodb
-    const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
-    if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
-        req.flash('error', 'Missing Input');
-        return res.render("addevent.ejs",{data: req.body})
+    const requiredFields = ['eventName', 'nameOfOrganizer', 'date', 'startTime', 'endTime', 'location', 'image'];
+    // Check for missing fields
+    const missingFields = requiredFields.filter(field => !req.body[field] && field !== 'image');
+    if (!req.file || missingFields.length > 0) {
+        const missingFieldsMessage = missingFields.length > 0 ? `Missing inputs: ${missingFields.join(', ')}` : '';
+        const imageMessage = !req.file ? 'Image is missing' : '';
+        req.flash('error', `${imageMessage} ${missingFieldsMessage}`);
+        return res.render("addevent.ejs", { data: req.body });
     }
+    // const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+    // if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
+    //     req.flash('error', 'Missing Input');
+    //     return res.render("addevent.ejs",{data: req.body})
+    // }
     const db = await Connection.open(mongoUri, DBNAME);
     
     // const eventsdb = db.collection(EVENTS);
