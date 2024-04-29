@@ -153,6 +153,7 @@ app.get('/explore', async (req, res) => {
 
 app.get('/myevent', async (req,res) => {
     const db = await Connection.open(mongoUri, DBNAME);
+    console.log("MY ID", req.session.uid)
     let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
     console.log("here are your events", myevents)
     return res.render('myevent.ejs', { username: req.session.username, events: myevents })
@@ -202,7 +203,7 @@ app.post('/register', async (req, res) => {
       const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
-      var existingUser = await db.collection(USERS).findOne({username: username});
+      var existingUser = await db.collection(USERS).findOne({wellesleyEmail: email});
       if (existingUser) {
         req.flash('error', "Login already exists - please try logging in instead.");
         return res.redirect('/')
@@ -215,7 +216,7 @@ app.post('/register', async (req, res) => {
           hash: hash
       };
       const result = await add(db, USERS, userData)
-    //   console.log('successfully joined', result);
+      console.log('successfully joined', result);
       const newUser = await db.collection(USERS).findOne({username: username});
       const userid = newUser.userId; // Assuming userId is the field for user id
       req.flash('info', 'successfully joined and logged in as ' + username);
@@ -231,15 +232,16 @@ app.post('/register', async (req, res) => {
 
 app.post("/login", async (req, res) => {
     try {
-      const userid = req.body.uid;
-      const username = req.body.username;
+    //   const userid = req.body.uid;
+    //   const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
-      var existingUser = await db.collection(USERS).findOne({username: username});
+      console.log('req.email',req.body.email)
+      var existingUser = await db.collection(USERS).findOne({wellesleyEmail: req.body.email});
       console.log('user', existingUser);
       if (!existingUser) {
-        req.flash('error', "Username does not exist - try again.");
-       return res.redirect('/')
+        req.flash('error', "User does not exist - try again.");
+        return res.redirect('/')
       }
       const match = await bcrypt.compare(password, existingUser.hash); 
       console.log('match', match);
@@ -247,6 +249,8 @@ app.post("/login", async (req, res) => {
           req.flash('error', "Username or password incorrect - try again.");
           return res.redirect('/')
       }
+      const username = existingUser.username
+      const userid = existingUser.userId
       req.flash('info', 'successfully logged in as ' + username);
       req.session.uid = userid;
       req.session.username = username;
