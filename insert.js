@@ -59,14 +59,14 @@ async function main() {
 
     await resetDB(db, 'users');
     await resetDB(db, 'events');
-    await add(db, 'users', {name: "Maria del Granado", username: 'majo', hash:'majo', wellesleyEmail: 'md103@wellesley.edu', friends: [2,3,4], 
-    rsvp:[1,2], hosting: [1]});
-    await add(db, 'users', {name: "Arya Wu", username:'arya', hash:'arya', wellesleyEmail: 'zw102@wellesley.edu', friends: [1,3,4], rsvp:[1,2], 
-    hosting: [2]});
-    await add(db, 'users', {name: "Bella Steedly", username: 'bella', hash:'bella', wellesleyEmail: 'bs102@wellesley.edu', friends: [1,2,4], 
-    rsvp:[2,3], hosting: [3]});
-    await add(db, 'users', {name: "Austen Boodell", wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[3], 
-    hosting: []});
+    // await add(db, 'users', {name: "Maria del Granado", username: 'majo', hash:'majo', wellesleyEmail: 'md103@wellesley.edu', friends: [2,3,4], 
+    // rsvp:[1,2], hosting: [1]});
+    // await add(db, 'users', {name: "Arya Wu", username:'arya', hash:'arya', wellesleyEmail: 'zw102@wellesley.edu', friends: [1,3,4], rsvp:[1,2], 
+    // hosting: [2]});
+    // await add(db, 'users', {name: "Bella Steedly", username: 'bella', hash:'bella', wellesleyEmail: 'bs102@wellesley.edu', friends: [1,2,4], 
+    // rsvp:[2,3], hosting: [3]});
+    // await add(db, 'users', {name: "Austen Boodell", wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[3], 
+    // hosting: []});
 
     //await Connection.open(mongoUri, myDBName);
     await add(db, 'events', {eventName: "Latinx Culture Show", idOrganizer:1, nameOfOrganizer: 'Maria del Granado',location: 'Casenove Hall', date: '2024-08-15',

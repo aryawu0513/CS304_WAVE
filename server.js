@@ -297,11 +297,8 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
         req.flash('error', `${imageMessage} ${missingFieldsMessage}`);
         return res.render("addevent.ejs", { data: req.body });
     }
-    // const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
-    // if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
-    //     req.flash('error', 'Missing Input');
-    //     return res.render("addevent.ejs",{data: req.body})
-    // }
+    const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+    
     const db = await Connection.open(mongoUri, DBNAME);
     
     // const eventsdb = db.collection(EVENTS);
