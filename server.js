@@ -9,7 +9,7 @@
 const path = require('path');
 require("dotenv").config({ path: path.join(process.env.HOME, '.cs304env')});
 const counter = require('./counter-utils.js')
-const { add } = require('./insert');
+// const { add } = require('./insert');
 const express = require('express');
 const bcrypt = require('bcrypt');
 const morgan = require('morgan');
@@ -119,6 +119,18 @@ const EVENTS = 'events'
 //     console.log('len', all.length, 'first', all[0]);
 //     return res.render('list.ejs', {listDescription: 'all events', list: all});
 // });
+async function add(db, coll, dict) {
+    const id = await counter.incr(db.collection('counters'), coll);
+    // update userId if adding user
+    if (coll == "users"){
+        dict.userId = id;
+    }
+    else {
+        dict.eventId = id;
+    }
+    let result = db.collection(coll).insertOne(dict);
+    return result;
+}
 
 // main page. This shows the use of session cookies
 app.get('/', (req, res) => {
@@ -141,17 +153,32 @@ app.get('/explore', async (req, res) => {
 
 app.get('/myevent', async (req,res) => {
     const db = await Connection.open(mongoUri, DBNAME);
-    // this loads all events
+    console.log("MY ID", req.session.uid)
     let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
-    // let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
     console.log("here are your events", myevents)
     return res.render('myevent.ejs', { username: req.session.username, events: myevents })
   });
 
+function parseInfo(user) {
+let vars = ['name', 'username', 'wellesleyEmail', 'friends'];
+vars.forEach((key) => {
+    if (!(key in user)) {
+    user[key] = [];
+    }
+});
+return user;
+}
 
-app.get('/profile', (req,res) => {
-    return res.render('profile.ejs', {username: req.session.username});
-  });
+app.get('/profile', async (req,res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+    
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
+});
+
 app.get('/register', (req, res) => {
     let uid = req.session.uid || 'unknown';
     let visits = req.session.visits || 0;
@@ -169,23 +196,31 @@ app.get('/register', (req, res) => {
 //     res.redirect('/explore');
 // });
 
-app.post('/set-uid/', async (req, res) => {
+app.post('/register', async (req, res) => {
     try {
+      const name = req.body.name;
+      const email = req.body.email;
       const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
-      var existingUser = await db.collection(USERS).findOne({username: username});
+      var existingUser = await db.collection(USERS).findOne({wellesleyEmail: email});
       if (existingUser) {
         req.flash('error', "Login already exists - please try logging in instead.");
         return res.redirect('/')
       }
       const hash = await bcrypt.hash(password, ROUNDS);
-      await db.collection(USERS).insertOne({
+      const userData={
           username: username,
+          name: name, 
+          wellesleyEmail: email,
           hash: hash
-      });
-      console.log('successfully joined', username, password, hash);
+      };
+      const result = await add(db, USERS, userData)
+      console.log('successfully joined', result);
+      const newUser = await db.collection(USERS).findOne({username: username});
+      const userid = newUser.userId; // Assuming userId is the field for user id
       req.flash('info', 'successfully joined and logged in as ' + username);
+      req.session.uid = userid;
       req.session.username = username;
       req.session.logged_in = true;
       return res.redirect('/explore');
@@ -195,32 +230,18 @@ app.post('/set-uid/', async (req, res) => {
     }
   });
 
-// // shows how logins might work via Ajax
-// app.post('/set-uid-ajax/', (req, res) => {
-//     console.log(Object.keys(req.body));
-//     console.log(req.body);
-//     let uid = req.body.uid;
-//     if(!uid) {
-//         res.send({error: 'no uid'}, 400);
-//         return;
-//     }
-//     req.session.uid = req.body.uid;
-//     req.session.logged_in = true;
-//     console.log('logged in via ajax as ', req.body.uid);
-//     res.send({error: false});
-//     return res.redirect('/explore');
-// });
-
 app.post("/login", async (req, res) => {
     try {
-      const username = req.body.username;
+    //   const userid = req.body.uid;
+    //   const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
-      var existingUser = await db.collection(USERS).findOne({username: username});
+      console.log('req.email',req.body.email)
+      var existingUser = await db.collection(USERS).findOne({wellesleyEmail: req.body.email});
       console.log('user', existingUser);
       if (!existingUser) {
-        req.flash('error', "Username does not exist - try again.");
-       return res.redirect('/')
+        req.flash('error', "User does not exist - try again.");
+        return res.redirect('/')
       }
       const match = await bcrypt.compare(password, existingUser.hash); 
       console.log('match', match);
@@ -228,7 +249,10 @@ app.post("/login", async (req, res) => {
           req.flash('error', "Username or password incorrect - try again.");
           return res.redirect('/')
       }
+      const username = existingUser.username
+      const userid = existingUser.userId
       req.flash('info', 'successfully logged in as ' + username);
+      req.session.uid = userid;
       req.session.username = username;
       req.session.logged_in = true;
       console.log('login as', username);
@@ -242,6 +266,7 @@ app.post("/login", async (req, res) => {
 // conventional non-Ajax logout, so redirects
 app.post('/logout', (req,res) => {
     if (req.session.username) {
+      req.session.uid = false;
       req.session.username = false;
       req.session.logged_in = false;
       req.flash('info', 'You are logged out');
@@ -252,77 +277,31 @@ app.post('/logout', (req,res) => {
     }
   });
 
-// two kinds of forms (GET and POST), both of which are pre-filled with data
-// from previous request, including a SELECT menu. Everything but radio buttons
-
-// app.get('/form/', (req, res) => {
-//     console.log('get form');
-//     return res.render('form.ejs', {action: '/form/', data: req.query });
-// });
-
-// app.post('/form/', (req, res) => {
-//     console.log('post form');
-//     return res.render('form.ejs', {action: '/form/', data: req.body });
-// });
 
 app.get('/addevent/', (req, res) => {
     console.log('get addevent form');
-    //waiting to have uid login fixed. rightnow it is undefined
-    console.log({ userid: req.session.uid})
     return res.render('addevent.ejs', {action: '/addevent/', data: req.query});//userid: req.session.uid
 });
-
-async function findTotalEvents() {
-    const db = await Connection.open(mongoUri, DBNAME);
-    const totalEvents = await db.collection(EVENTS).countDocuments();
-    return totalEvents
-}
-
-// app.post('/addevent', upload.single('image'), async (req, res) => {
-//     console.log('post a new event to the database');
-//     console.log('uploaded data', req.body);
-//     console.log('image', req.file);
-//     //insert file data into mongodb
-//     const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
-//     if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
-//         req.flash('error', 'Missing Input');
-//         return res.render("addevent.ejs",{data: req.body})
-//     }
-//     const db = await Connection.open(mongoUri, DBNAME);
-//     const eventsdb = db.collection(EVENTS);
-//     const eventid = await findTotalEvents() + 1;
-//     console.log("eventid",eventid)
-//     const eventData = {
-//         eventId: eventid,
-//         eventName: eventName,
-//         idOrganizer: req.session.uid,
-//         nameOfOrganizer:nameOfOrganizer,
-//         location: location,
-//         date: date,
-//         startTime: startTime,
-//         endTime: endTime,
-//         image: ['/uploads/' + req.file.filename],     
-//         tags: tags,
-//         attendees:[],
-//         venmo: '',
-//         gcal: '',
-//         spotify: ''
-//     };
-//     const result = await eventsdb.insertOne(eventData);
-//     console.log('insertOne result', result);
-//     return res.redirect('/myevent');
-// });
 
 app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('post a new event to the database');
     console.log('uploaded data', req.body);
     console.log('image', req.file);
     //insert file data into mongodb
-    const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
-    if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
-        req.flash('error', 'Missing Input');
-        return res.render("addevent.ejs",{data: req.body})
+    const requiredFields = ['eventName', 'nameOfOrganizer', 'date', 'startTime', 'endTime', 'location', 'image'];
+    // Check for missing fields
+    const missingFields = requiredFields.filter(field => !req.body[field] && field !== 'image');
+    if (!req.file || missingFields.length > 0) {
+        const missingFieldsMessage = missingFields.length > 0 ? `Missing inputs: ${missingFields.join(', ')}` : '';
+        const imageMessage = !req.file ? 'Image is missing' : '';
+        req.flash('error', `${imageMessage} ${missingFieldsMessage}`);
+        return res.render("addevent.ejs", { data: req.body });
     }
+    // const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+    // if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
+    //     req.flash('error', 'Missing Input');
+    //     return res.render("addevent.ejs",{data: req.body})
+    // }
     const db = await Connection.open(mongoUri, DBNAME);
     
     // const eventsdb = db.collection(EVENTS);
@@ -347,6 +326,122 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
     // const result = await eventsdb.insertOne(eventData);
     console.log('insertOne result', result);
     return res.redirect('/myevent');
+});
+
+// Edit Event Form
+app.get('/editEvent', async (req, res) => {
+    // Retrieve the event ID from the request query
+    const eventId = parseInt(req.query.eventId);
+    // Delete the event from the database using the event ID
+    const db = await Connection.open(mongoUri, DBNAME);
+    const event = await db.collection(EVENTS).findOne({eventId: eventId })
+    // Render a form to edit the event using the event ID
+    console.log("THIS IS THE EVENT TO CHANGE:",event)
+    res.render('editevent.ejs', { event:event });
+});
+
+// Handle Edit Event Form Submission
+app.post('/editEvent', async (req, res) => {
+    // Retrieve the event ID and updated event data from the request body
+    const eventId = parseInt(req.body.eventId);
+    const updatedEvent = {
+        eventId : eventId,
+        eventName: req.body.eventName,
+        location: req.body.location,
+        date: req.body.date,
+        startTime: req.body.startTime,
+        endTime: req.body.endTime,
+        tags: req.body.tags.split(','), // Assuming tags are comma-separated
+        attendees: req.body.attendees.split(','), // Assuming attendees are comma-separated
+        venmo: req.body.venmo,
+        gcal: req.body.gcal,
+        spotify: req.body.spotify
+    };
+
+    console.log(updatedEvent)
+    const db = await Connection.open(mongoUri, DBNAME);
+    const result = await db.collection(EVENTS).updateOne({ eventId: eventId}, { $set: updatedEvent });
+    
+    console.log("UPDATE RESULT:",result);
+    res.redirect('/myevent');
+});
+
+app.post('/addFriend/', async (req, res) =>{
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+
+    let friendId = parseInt(req.body.friendId);
+    let userFriends = data[0].friends;
+    console.log(friendId);
+
+    if (!(friendId in userFriends)){
+        await users.updateOne(
+            { username: req.session.username },
+            { $addToSet: { friends: friendId } }
+        );
+    }
+    data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data[0].friends);
+    
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
+    
+})
+
+// Delete Event
+app.post('/deleteEvent', async (req, res) => {
+    // Retrieve the event ID from the request body
+    const eventId = parseInt(req.body.eventId);
+    // Delete the event from the database using the event ID
+    const db = await Connection.open(mongoUri, DBNAME);
+    const result = await db.collection(EVENTS).deleteOne({eventId: eventId });
+    // if (result.deletedCount === 1) {
+    //     req.flash('info', 'Event deleted successfully');
+    // } else {
+    //     req.flash('error', 'Failed to delete event');
+    // }
+    console.log("DELETE RESULT:",result)
+
+    // Redirect to the page displaying all events
+    res.redirect('/myevent');
+});
+
+app.get('/searchFriends', async (req, res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    const entry = req.query.entry;
+    const kind = req.query.kind; 
+
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+    
+
+    console.log(entry, kind, "entyr and kind");
+
+    if ((entry && !kind) || (!entry && kind)){
+        req.flash("info", `please provide corresponding kind for your search query`);
+        return res.redirect("/profile")
+    }
+
+    if (kind == "name"){
+        var listPerson = await users
+        .find({'name': {'$regex': entry, '$options': 'i'}}) //find based on input term
+        .toArray();
+    }
+    else if (kind == 'username'){ 
+        var listPerson = await users
+        .find({'username': {'$regex': entry, '$options': 'i'}}) //find based on input term
+        .toArray();
+    }
+
+    console.log('matches', listPerson);
+
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: listPerson});
+
+    
 });
 
 
@@ -462,9 +557,34 @@ app.post('/rsvp/', async (req, res) => {
     let events = await db.collection(EVENTS).find().toArray();
     return res.render('explore.ejs', { username: username, events: events });
 
-  });
+});
 
+app.post('/updateProfile/', async (req, res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(req.body, "body");
 
+    // Extract data from req.body and update user info
+    for (const key in req.body) {
+        if (req.body[key] !== '') {
+            data[0][key] = req.body[key];
+        }
+    }
+    // Update user info in the database
+    await users.updateOne(
+        {username: req.session.username},
+        {$set: data[0]}
+    );
+
+    req.session.username = data[0]['username'];
+
+    data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    
+    console.log(data, "data")
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
+
+})
 // ================================================================
 // postlude
 
