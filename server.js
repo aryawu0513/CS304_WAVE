@@ -512,7 +512,7 @@ app.get('/search/', async (req, res) => {
         }
     }
     console.log("heres events", events)
-    return res.render('explore.ejs', { username: req.session.uid, events: events });
+    return res.render('explore.ejs', { username: req.session.username, events: events });
 })
 
 //filters events on explore page
