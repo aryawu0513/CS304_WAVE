@@ -158,9 +158,13 @@ app.get("/", (req, res) => {
 app.get("/explore", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
   // this loads all events
-  let events = await db.collection(EVENTS).find().toArray();
+  // let events = await db.collection(EVENTS).find().toArray();
+  let events = await db.collection(EVENTS).find().sort({ date: -1 }).toArray();
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+
   console.log("here are events", events);
   return res.render("explore.ejs", {
+    user:user,
     username: req.session.username,
     events: events,
   });
@@ -169,9 +173,8 @@ app.get("/explore", async (req, res) => {
 /**
  * This route handles the GET request to the myevent page.
  *
- * It opens a connection to the database and retrieves all events organized by the current user.
  * The current user is identified by the user ID stored in the session.
- * It then renders the 'myevent.ejs' view, passing the username from the session and the retrieved events to the view.
+ * It then renders the 'myevent.ejs' view
  */
 app.get("/myevent", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
@@ -179,6 +182,7 @@ app.get("/myevent", async (req, res) => {
   let myevents = await db
     .collection(EVENTS)
     .find({ idOrganizer: req.session.uid })
+    .sort({ date: -1 })
     .toArray();
   console.log("here are your events", myevents);
   return res.render("myevent.ejs", {
@@ -186,6 +190,7 @@ app.get("/myevent", async (req, res) => {
     events: myevents,
   });
 });
+
 
 /**
  * This function ensures that the user object has all the necessary keys.
@@ -621,14 +626,18 @@ app.get("/search/", async (req, res) => {
   const entry = req.query.entry;
   const kind = req.query.kind; //assuming that the kind options correspond with the keys in database
   const date = req.query.date;
-  let events = await db.collection(EVENTS).find().toArray();
+  // let events = await db.collection(EVENTS).find().toArray();
+  // console.log(events)
+  let events = await db.collection(EVENTS).find().sort({ date: -1 }).toArray();
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
 
   if ((entry && !kind) || (!entry && kind)) {
     req.flash(
       "info",
       `please provide corresponding kind for your search query`
     );
-    return res.render("explore.ejs", { username: req.session.uid, events });
+
+    return res.render("explore.ejs", {user:user,username: req.session.username, events });
   }
   if (kind == "person") {
     console.log("in person---------");
@@ -659,7 +668,8 @@ app.get("/search/", async (req, res) => {
   }
   console.log("heres events", events);
   return res.render("explore.ejs", {
-    username: req.session.uid,
+    user:user,
+    username: req.session.username,
     events: events,
   });
 });
@@ -693,7 +703,8 @@ app.get("/filter", async (req, res) => {
   }
 
   let events = await db.collection(EVENTS).find(query).toArray();
-  return res.render("explore.ejs", { username: req.session.uid, events });
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  return res.render("explore.ejs", { user:user,username: req.session.username, events });
 });
 
 //working on this
@@ -721,8 +732,35 @@ app.post("/rsvp/", async (req, res) => {
     .collection(USERS)
     .updateOne({ username: username }, { $addToSet: { rsvp: eventId } });
 
-  let events = await db.collection(EVENTS).find().toArray();
-  return res.render("explore.ejs", { username: username, events: events });
+  // let events = await db.collection(EVENTS).find().toArray();
+  let events = await db.collection(EVENTS).find().sort({ date: -1 }).toArray();
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  return res.render("explore.ejs", { user:user,username: username, events: events });
+});
+
+
+app.get("/savedevent", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  let savedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.saved } }).sort({ date: -1 }).toArray();
+    
+  console.log("here are your saved events", savedEvents);
+  return res.render("savedevent.ejs", {
+    username: req.session.username,
+    events: savedEvents,
+  });
+});
+
+app.get("/rsvpedevent", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  let rsvpedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.rsvp } }).sort({ date: -1 }).toArray();
+    
+  console.log("here are your rsvped events", rsvpedEvents);
+  return res.render("savedevent.ejs", {
+    username: req.session.username,
+    events: rsvpedEvents,
+  });
 });
 
 /**
@@ -768,6 +806,26 @@ app.post("/updateProfile/", async (req, res) => {
     listPeople: [],
   });
 });
+
+
+// Handle POST requests to "/saveEvent"
+app.post("/saveAjax/:eventId", async(req, res) =>{
+  let username = req.session.username || "unknown";
+  const eventId =parseInt(req.params.eventId);
+  
+  // Logic to save the event for the current user
+  const db = await Connection.open(mongoUri, DBNAME);
+  await db
+  .collection(USERS)
+  .updateOne({ username: username }, { $addToSet: { saved: eventId } });
+
+  // For example, you could add the eventId to the user's saved events list in the database
+  // const doc = await likeMovie(tt);
+  return res.json({ error: false, eventId:eventId});
+ // Send success status
+});
+
+
 // ================================================================
 // postlude
 
