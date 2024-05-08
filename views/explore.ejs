@@ -43,7 +43,7 @@
           </form>
           
           <label>Interested in the event: </label>
-          <% if (!user.saved.includes(evt.eventId)) { %>
+          <% if (user.saved &&!user.saved.includes(evt.eventId)) { %>
             <button class="saveBtn" type="button">Save</button>
           <% } else { %>
             <button class="saveBtn" type="button" disabled="true" >Saved</button>
