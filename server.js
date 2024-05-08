@@ -779,18 +779,27 @@ app.post("/updateProfile/", async (req, res) => {
   let users = await db.collection(USERS);
   let data = await users
     .find({ username: req.session.username })
-    .project({ name: 1, username: 1, wellesleyEmail: 1, friends: 1 })
+    .project({ name: 1, username: 1, wellesleyEmail: 1, friends: 1, userId:1})
     .toArray();
   console.log(req.body, "body");
 
+  let nameOfUser = req.body['name'];
+  // if name of user is being modified you also have to update events database
+  if (nameOfUser != "" && nameOfUser != data[0]['name']){
+    let events = await db.collection(EVENTS);
+    let userId = data[0]["userId"];
+    await events.updateMany({idOrganizer: userId}, {$set: {nameOfOrganizer: nameOfUser}});
+  }
+
   // Extract data from req.body and update user info
   for (const key in req.body) {
-    if (req.body[key] !== "") {
+    if (req.body[key] != "") {
       data[0][key] = req.body[key];
     }
   }
+
   // Update user info in the database
-  await users.updateOne({ username: req.session.username }, { $set: data[0] });
+  await users.updateOne({username: req.session.username }, {$set: data[0]});
 
   req.session.username = data[0]["username"];
 
