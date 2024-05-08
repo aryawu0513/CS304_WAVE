@@ -142,23 +142,57 @@ app.get('/', (req, res) => {
     return res.render('index.ejs', {uid, visits});
 });
 
-app.get('/explore', async (req, res) => {
-    const db = await Connection.open(mongoUri, DBNAME);
-    // this loads all events
-    let events = await db.collection(EVENTS).find().toArray();
-    console.log("here are events", events)
-    return res.render('explore.ejs', { username: req.session.username, events: events });
+/**
+ * This route handles the GET request to the explore page.
+ *
+ * It opens a connection to the database and retrieves all events.
+ * It then renders the 'explore.ejs' view, passing the username from the session and the retrieved events to the view.
+ */
+app.get("/explore", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  // this loads all events
+  // let events = await db.collection(EVENTS).find().toArray();
+  let events = await db.collection(EVENTS).find().sort({ date: -1 }).toArray();
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+
+  console.log("here are events", events);
+  return res.render("explore.ejs", {
+    user:user,
+    username: req.session.username,
+    events: events,
+  });
+});
+
+/**
+ * This route handles the GET request to the myevent page.
+ *
+ * The current user is identified by the user ID stored in the session.
+ * It then renders the 'myevent.ejs' view
+ */
+app.get("/myevent", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  console.log("MY ID", req.session.uid);
+  let myevents = await db
+    .collection(EVENTS)
+    .find({ idOrganizer: req.session.uid })
+    .sort({ date: -1 })
+    .toArray();
+  console.log("here are your events", myevents);
+  return res.render("myevent.ejs", {
+    username: req.session.username,
+    events: myevents,
+  });
 });
 
 
-app.get('/myevent', async (req,res) => {
-    const db = await Connection.open(mongoUri, DBNAME);
-    console.log("MY ID", req.session.uid)
-    let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
-    console.log("here are your events", myevents)
-    return res.render('myevent.ejs', { username: req.session.username, events: myevents })
-  });
-
+/**
+ * This function ensures that the user object has all the necessary keys.
+ * If any of the keys "name", "username", "wellesleyEmail", or "friends" are not present in the user object,
+ * it adds them with an initial value of an empty array.
+ *
+ * @param {Object} user - The user object to be parsed.
+ * @returns {Object} - The parsed user object with all necessary keys.
+ */
 function parseInfo(user) {
 let vars = ['name', 'username', 'wellesleyEmail', 'friends'];
 vars.forEach((key) => {
@@ -444,76 +478,69 @@ app.get('/searchFriends', async (req, res) => {
     
 });
 
+/**
+ * This route handles the GET request to the search page.
+ *
+ * It retrieves the search entry, kind, and date from the request query and the user's username from the session.
+ * It opens a connection to the database and retrieves all events.
+ * If only the search entry or kind is provided, it flashes an info message and renders the 'explore.ejs' view with all events.
+ * If the kind is 'person', it searches for events whose organizer's name matches the search entry.
+ * If the kind is not 'person' and is provided, it searches for events whose date and the field corresponding to the kind match the search entry and date.
+ * If the kind is not provided, it searches for events whose date matches the search date.
+ * It then renders the 'explore.ejs' view, passing the username from the session and the matching events to the view.
+ */
+app.get("/search/", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  const entry = req.query.entry;
+  const kind = req.query.kind; //assuming that the kind options correspond with the keys in database
+  const date = req.query.date;
+  // let events = await db.collection(EVENTS).find().toArray();
+  // console.log(events)
+  let events = await db.collection(EVENTS).find().sort({ date: -1 }).toArray();
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
 
-// app.get('/staffList/', async (req, res) => {
-//     const db = await Connection.open(mongoUri, WMDB);
-//     let all = await db.collection(STAFF).find({}).sort({name: 1}).toArray();
-//     console.log('len', all.length, 'first', all[0]);
-//     return res.render('list.ejs', {listDescription: 'all staff', list: all});
-// });
+  if ((entry && !kind) || (!entry && kind)) {
+    req.flash(
+      "info",
+      `please provide corresponding kind for your search query`
+    );
 
-/////file upload
-// app.post('/upload', upload.single('image'), async (req, res) => {
-//     const username = req.session.username;
-//     if (!username) {
-//         req.flash('info', "You are not logged in");
-//         return res.redirect('/login');
-//     }
-//     console.log('uploaded data', req.body);
-//     console.log('file', req.file);
-//     // insert file data into mongodb
-//     const db = await Connection.open(mongoUri, DBNAME);
-//     const result = await db.collection(EVENTS)
-//           .insertOne({title: req.body.title,
-//                       owner: username,
-//                       //base on event's attribtues
-//                       Image_path: '/uploads/'+req.file.filename});
-//     console.log('insertOne result', result);
-//     // always nice to confirm with the user
-//     req.flash('info', 'file uploaded');
-//     return res.redirect('/');
-// });
-
-//search events on explore page
-app.get('/search/', async (req, res) => {
-    const db = await Connection.open(mongoUri, DBNAME);
-    const entry = req.query.entry;
-    const kind = req.query.kind; //assuming that the kind options correspond with the keys in database
-    const date = req.query.date;
-    let events = await db.collection(EVENTS).find().toArray();
-
-    if ((entry && !kind) || (!entry && kind)){
-        req.flash("info", `please provide corresponding kind for your search query`);
-        return res.render("explore.ejs", { username: req.session.uid, events})
-    }
-    if (kind == "person") {
-        console.log("in person---------")
-        events = [];
-        console.log("set events to", events);
-        let pattern = new RegExp(entry, "i");
-        console.log("here is query", {name: { $regex: pattern }});
-        events = await db.collection(EVENTS).find({ nameOfOrganizer: { $regex: pattern }}).toArray();
-        
+    return res.render("explore.ejs", {user:user,username: req.session.username, events });
+  }
+  if (kind == "person") {
+    console.log("in person---------");
+    events = [];
+    console.log("set events to", events);
+    let pattern = new RegExp(entry, "i");
+    console.log("here is query", { name: { $regex: pattern } });
+    events = await db
+      .collection(EVENTS)
+      .find({ nameOfOrganizer: { $regex: pattern } })
+      .toArray();
+  } else {
+    if (kind) {
+      let kpattern = new RegExp(entry, "i");
+      let dpattern = new RegExp(date, "i");
+      let query = { date: { $regex: dpattern } }; //todo austen - check that this works
+      query[kind] = { $regex: kpattern };
+      console.log("here is query", query);
+      events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+      console.log("here are events", events);
     } else {
-        if (kind){
-            let kpattern = new RegExp(entry, "i");
-            let dpattern = new RegExp(date, "i");
-            let query = {date: { $regex: dpattern }}; //todo austen - check that this works
-            query[kind] = { $regex: kpattern };
-            console.log("here is query", query)
-            events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
-            console.log("here are events", events)
-        } else {
-            let dpattern = new RegExp(date, "i");
-            let query = {date: { $regex: dpattern }}; //todo austen - check that this works
-            console.log("here is query", query)
-            events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
-            console.log("here are events", events)
-        }
+      let dpattern = new RegExp(date, "i");
+      let query = { date: { $regex: dpattern } }; //todo austen - check that this works
+      console.log("here is query", query);
+      events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+      console.log("here are events", events);
     }
-    console.log("heres events", events)
-    return res.render('explore.ejs', { username: req.session.username, events: events });
-})
+  }
+  console.log("heres events", events);
+  return res.render("explore.ejs", {
+    user:user,
+    username: req.session.username,
+    events: events,
+  });
+});
 
 //filters events on explore page
 app.get('/filter', async (req, res) => {
@@ -533,9 +560,10 @@ app.get('/filter', async (req, res) => {
         query.tags = { $in: tags };
     }
 
-    let events = await db.collection(EVENTS).find(query).toArray();
-    return res.render('explore.ejs', { username: req.session.uid, events });
-})
+  let events = await db.collection(EVENTS).find(query).toArray();
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  return res.render("explore.ejs", { user:user,username: req.session.username, events });
+});
 
 app.post('/rsvp/', async (req, res) => {
     let username = req.session.username || 'unknown';
@@ -554,37 +582,107 @@ app.post('/rsvp/', async (req, res) => {
     console.log("event", event);
     console.log("user", user);
 
-    let events = await db.collection(EVENTS).find().toArray();
-    return res.render('explore.ejs', { username: username, events: events });
-
+  // let events = await db.collection(EVENTS).find().toArray();
+  let events = await db.collection(EVENTS).find().sort({ date: -1 }).toArray();
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  return res.render("explore.ejs", { user:user,username: username, events: events });
 });
 
-app.post('/updateProfile/', async (req, res) => {
-    const db = await Connection.open(mongoUri, DBNAME);
-    let users = await db.collection(USERS);
-    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
-    console.log(req.body, "body");
 
-    // Extract data from req.body and update user info
-    for (const key in req.body) {
-        if (req.body[key] !== '') {
-            data[0][key] = req.body[key];
-        }
+app.get("/savedevent", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  let savedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.saved } }).sort({ date: -1 }).toArray();
+    
+  console.log("here are your saved events", savedEvents);
+  return res.render("savedevent.ejs", {
+    username: req.session.username,
+    events: savedEvents,
+  });
+});
+
+app.get("/rsvpedevent", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  let rsvpedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.rsvp } }).sort({ date: -1 }).toArray();
+    
+  console.log("here are your rsvped events", rsvpedEvents);
+  return res.render("savedevent.ejs", {
+    username: req.session.username,
+    events: rsvpedEvents,
+  });
+});
+
+/**
+ * This route handles the POST request to the updateProfile page.
+ *
+ * It opens a connection to the database and retrieves the user's data.
+ * It then iterates over the request body, updating the user's data with the new values provided in the request body.
+ * It updates the user's data in the database.
+ * It updates the username in the session with the new username.
+ * It retrieves the updated user's data from the database.
+ * It then renders the 'profile.ejs' view, passing the username from the session, the updated user's data, and an empty list of people to the view.
+
+ */
+app.post("/updateProfile/", async (req, res) => {
+  const db = await Connection.open(mongoUri, DBNAME);
+  let users = await db.collection(USERS);
+  let data = await users
+    .find({ username: req.session.username })
+    .project({ name: 1, username: 1, wellesleyEmail: 1, friends: 1, userId:1})
+    .toArray();
+  console.log(req.body, "body");
+
+  let nameOfUser = req.body['name'];
+  // if name of user is being modified you also have to update events database
+  if (nameOfUser != "" && nameOfUser != data[0]['name']){
+    let events = await db.collection(EVENTS);
+    let userId = data[0]["userId"];
+    await events.updateMany({idOrganizer: userId}, {$set: {nameOfOrganizer: nameOfUser}});
+  }
+
+  // Extract data from req.body and update user info
+  for (const key in req.body) {
+    if (req.body[key] != "") {
+      data[0][key] = req.body[key];
     }
-    // Update user info in the database
-    await users.updateOne(
-        {username: req.session.username},
-        {$set: data[0]}
-    );
+  }
 
-    req.session.username = data[0]['username'];
+  // Update user info in the database
+  await users.updateOne({username: req.session.username }, {$set: data[0]});
 
     data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
     
     console.log(data, "data")
     return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
 
-})
+  console.log(data, "data");
+  return res.render("profile.ejs", {
+    username: req.session.username,
+    userData: parseInfo(data[0]),
+    listPeople: [],
+  });
+});
+
+
+// Handle POST requests to "/saveEvent"
+app.post("/saveAjax/:eventId", async(req, res) =>{
+  let username = req.session.username || "unknown";
+  const eventId =parseInt(req.params.eventId);
+  
+  // Logic to save the event for the current user
+  const db = await Connection.open(mongoUri, DBNAME);
+  await db
+  .collection(USERS)
+  .updateOne({ username: username }, { $addToSet: { saved: eventId } });
+
+  // For example, you could add the eventId to the user's saved events list in the database
+  // const doc = await likeMovie(tt);
+  return res.json({ error: false, eventId:eventId});
+ // Send success status
+});
+
+
 // ================================================================
 // postlude
 
