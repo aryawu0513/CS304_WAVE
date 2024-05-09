@@ -9,11 +9,11 @@ h1 {
 
 nav {
   display: flex;
-  justify-content: space-between; /* Distribute items evenly */
-  width: 90%; /* Occupy the full width of the container */
-  padding: 10px; /* Add some padding for better spacing */
-  box-sizing: border-box; /* Include padding in the width calculation */
-  margin: 0 auto; /* Center the navigation bar horizontally */
+  justify-content: space-between; 
+  width: 90%; 
+  padding: 10px; 
+  box-sizing: border-box; 
+  margin: 0 auto; 
 }
 
 nav span {
@@ -81,13 +81,13 @@ form.example {
 .events-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between; /* Distribute items evenly */
+  justify-content: space-between;
 }
 
 .event-details {
-  width: 29%; /* Each event takes up 30% of the container width (with 2% margin) */
-  margin-right: 2%; /* Add some space between each event */
-  margin-bottom: 2%; /* Add some space below each row */
+  width: 29%;
+  margin-right: 2%;
+  margin-bottom: 2%;
 }
 
 #events-list {
