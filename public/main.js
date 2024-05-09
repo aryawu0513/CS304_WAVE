@@ -2,12 +2,12 @@ console.log('main.js loaded');
 
 $(document).ready(function() {
     console.log("HI!!!");
-    $("#events-list").on('click', '.saveBtn', function(event) {
+    $(".events-grid").on('click', '.saveBtn', function(event) {
       var eventId = $(this).closest("[data-id]").attr("data-id");
       console.log(eventId)
       saveEvent(eventId);
     });
-    $("#events-list").on('click', '.rsvpBtn', function(event) {
+    $(".events-grid").on('click', '.rsvpBtn', function(event) {
         var eventId = $(this).closest("[data-id]").attr("data-id");
         console.log(eventId)
         rsvpEvent(eventId);
