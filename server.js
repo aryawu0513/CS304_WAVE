@@ -857,13 +857,6 @@ app.post("/updateProfile/", async (req, res) => {
     
     console.log(data, "data")
     return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
-
-  console.log(data, "data");
-  return res.render("profile.ejs", {
-    username: req.session.username,
-    userData: parseInfo(data[0]),
-    listPeople: [],
-  });
 });
 
 
