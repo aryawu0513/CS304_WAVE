@@ -1,12 +1,19 @@
+body {
+  font-family: "Karla", sans-serif!important;
+}
+
 h1 {
   color: purple;
 }
+
+
 nav {
   display: flex;
   justify-content: space-between; /* Distribute items evenly */
-  width: 100%; /* Occupy the full width of the container */
+  width: 90%; /* Occupy the full width of the container */
   padding: 10px; /* Add some padding for better spacing */
   box-sizing: border-box; /* Include padding in the width calculation */
+  margin: 0 auto; /* Center the navigation bar horizontally */
 }
 
 nav span {
@@ -15,7 +22,7 @@ nav span {
 
 nav span a {
   display: inline-block;
-  padding: 10px 20px;
+  padding: 10px 40px;
   text-decoration: none;
   color: white;
   background-color: #D29DDE;
@@ -24,7 +31,7 @@ nav span a {
 }
 
 nav span a:hover {
-  background-color: #cb87db;
+  background-color: #c46ad8;
 }
 
 span {
