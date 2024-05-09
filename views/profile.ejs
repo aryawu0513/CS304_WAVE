@@ -12,35 +12,31 @@
   <%- include("partials/navbar.ejs") %>
   <h1>You are <%= username %>!</h1>
 
-
-  <form method="POST" action="/updateProfile/">
+  <form method="POST" action="/updateProfile">
     <table>
-    <tbody>
-    <tr>
-    <td><label for="User">Username</label></td>
-    <td>
-    <input name="username" value="<%= username %>">
-    </td>
-    </tr>
-    <tr>
-      <td><label for="wellesleyEmail">Email</label></td>
-      <td>
-      <input name="wellesleyEmail" value="<%= userData.wellesleyEmail%>">
-      </td>
-    </tr>
-    <tr>
-      <td><label for="name">Name</label></td>
-      <td>
-      <input name="name" value="<%= userData.name%>">
-      </td>
-    </tr>
-    <tr>
-      <td><label for="friends">Friends</label></td>
-      <td><%= userData.friends.length%></td>
-    </tr>
-    </tbody></table>
-    <input class = "bottomButtons" type="submit" value="update">
-  </form>
+        <tbody>
+            <tr>
+                <td><label for="username">Username</label></td>
+                <td><input id="username" name="username" value="<%= username %>"></td>
+            </tr>
+            <tr>
+                <td><label for="wellesleyEmail">Email</label></td>
+                <td><input id="wellesleyEmail" name="wellesleyEmail" value="<%= userData.wellesleyEmail %>"></td>
+            </tr>
+            <tr>
+                <td><label for="name">Name</label></td>
+                <td><input id="name" name="name" value="<%= userData.name %>"></td>
+            </tr>
+            <tr>
+                <td><label for="friends">Friends</label></td>
+                <td><%= userData.friends.length %></td>
+            </tr>
+        </tbody>
+    </table>
+    <input class="bottomButtons" type="submit" value="update">
+</form>
+
+
 
   <% function friendDisplay(person){
     let info = `Name: ${person.name} (Username: ${person.username})`;

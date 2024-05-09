@@ -9,6 +9,24 @@ nav {
   box-sizing: border-box; /* Include padding in the width calculation */
 }
 
+nav span {
+  margin: 0 10px;
+}
+
+nav span a {
+  display: inline-block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: white;
+  background-color: #D29DDE;
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+nav span a:hover {
+  background-color: #cb87db;
+}
+
 span {
   margin-right: 20px; /* Adjust as needed for spacing */
 }
@@ -16,7 +34,6 @@ span {
 span:last-child {
   margin-right: 0; /* Remove margin from the last span */
 }
-
 
 #errors {
   color: red;
