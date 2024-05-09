@@ -114,9 +114,10 @@ const EVENTS = "events";
 
 /**
  * This function is used to add a new document to a specified collection in the database.
- * It first increments a counter for the collection, then adds this counter as an ID to the document.
- * If the collection is 'users', the ID is added as 'userId'. For event collections, it's added as 'eventId'.
- * Finally, the document is inserted into the collection.
+ * It first increments a counter for the collection, then adds this counter as an ID to 
+ * the document. If the collection is 'users', the ID is added as 'userId'. For event 
+ * collections, it's added as 'eventId'. Finally, the document is inserted into the 
+ * collection.
  *
  * @param {Object} db - The database object.
  * @param {String} coll - The name of the collection.
@@ -136,9 +137,10 @@ async function add(db, coll, dict) {
 }
 
 /**
- * This is the main page route. It uses session cookies to track the user's ID and the number of visits.
- * If the user ID or visits are not set in the session, they are initialized to 'unknown' and 0, respectively.
- * The number of visits is incremented each time the route is accessed.
+ * This is the main page route. It uses session cookies to track the user's ID and the 
+ * number of visits. If the user ID or visits are not set in the session, they are 
+ * initialized to 'unknown' and 0, respectively. The number of visits is incremented 
+ * each time the route is accessed.
  */
 app.get("/", (req, res) => {
   let uid = req.session.uid || "unknown";
@@ -153,7 +155,8 @@ app.get("/", (req, res) => {
  * This route handles the GET request to the explore page.
  *
  * It opens a connection to the database and retrieves all events.
- * It then renders the 'explore.ejs' view, passing the username from the session and the retrieved events to the view.
+ * It then renders the 'explore.ejs' view, passing the username from the session and the 
+ * retrieved events to the view.
  */
 app.get("/explore", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
@@ -194,8 +197,9 @@ app.get("/myevent", async (req, res) => {
 
 /**
  * This function ensures that the user object has all the necessary keys.
- * If any of the keys "name", "username", "wellesleyEmail", or "friends" are not present in the user object,
- * it adds them with an initial value of an empty array.
+ * If any of the keys "name", "username", "wellesleyEmail", or "friends" are 
+ * not present in the user object, it adds them with an initial value of an 
+ * empty array.
  *
  * @param {Object} user - The user object to be parsed.
  * @returns {Object} - The parsed user object with all necessary keys.
@@ -213,10 +217,12 @@ function parseInfo(user) {
 /**
  * This route handles the GET request to the profile page.
  *
- * It opens a connection to the database and retrieves the user's data based on the username stored in the session.
- * The data retrieved includes the user's name, username, Wellesley email, and friends.
- * The user data is then parsed using the `parseInfo` function to ensure all necessary keys are present.
- * Finally, it renders the 'profile.ejs' view, passing the username, parsed user data, and an empty list of people to the view.
+ * It opens a connection to the database and retrieves the user's data based 
+ * on the username stored in the session. The data retrieved includes the user's 
+ * name, username, Wellesley email, and friends. The user data is then parsed using 
+ * the `parseInfo` function to ensure all necessary keys are present. Finally, it 
+ * renders the 'profile.ejs' view, passing the username, parsed user data, and 
+ * an empty list of people to the view.
  */
 app.get("/profile", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
@@ -239,9 +245,10 @@ app.get("/profile", async (req, res) => {
  * This route handles the GET request to the register page.
  *
  * It uses session cookies to track the user's ID and the number of visits.
- * If the user ID or visits are not set in the session, they are initialized to 'unknown' and 0, respectively.
- * The number of visits is incremented each time the route is accessed.
- * Finally, it renders the 'register.ejs' view, passing the user ID and visit count to the view.
+ * If the user ID or visits are not set in the session, they are initialized 
+ * to 'unknown' and 0, respectively. The number of visits is incremented each 
+ * time the route is accessed. Finally, it renders the 'register.ejs' view, 
+ * passing the user ID and visit count to the view.
  */
 app.get("/register", (req, res) => {
   let uid = req.session.uid || "unknown";
@@ -254,12 +261,14 @@ app.get("/register", (req, res) => {
 /**
  * This route handles the POST request to the register page.
  *
- * It retrieves the user's name, email, username, and password from the request body.
- * It then checks if a user with the same email already exists in the database.
+ * It retrieves the user's name, email, username, and password from the request 
+ * body. It then checks if a user with the same email already exists in the database.
  * If such a user exists, it flashes an error message and redirects to the home page.
- * If no such user exists, it hashes the password and creates a new user in the database with the provided details.
- * It then retrieves the newly created user from the database, sets the user's ID and username in the session, and redirects to the explore page.
- * If any error occurs during this process, it flashes an error message and redirects to the home page.
+ * If no such user exists, it hashes the password and creates a new user in the database 
+ * with the provided details. It then retrieves the newly created user from the database, 
+ * sets the user's ID and username in the session, and redirects to the explore page. 
+ * If any error occurs during this process, it flashes an error message and redirects 
+ * to the home page.
  */
 app.post("/register", async (req, res) => {
   try {
@@ -303,12 +312,14 @@ app.post("/register", async (req, res) => {
 /**
  * This route handles the POST request to the login page.
  *
- * It retrieves the user's password from the request body and the user's email to find the user in the database.
- * If no such user exists, it flashes an error message and redirects to the home page.
- * If a user exists, it compares the provided password with the hashed password stored in the database.
- * If the passwords match, it sets the user's ID and username in the session, flashes a success message, and redirects to the explore page.
- * If the passwords do not match, it flashes an error message and redirects to the home page.
- * If any error occurs during this process, it flashes an error message and redirects to the home page.
+ * It retrieves the user's password from the request body and the user's email to 
+ * find the user in the database. If no such user exists, it flashes an error 
+ * message and redirects to the home page. If a user exists, it compares the provided 
+ * password with the hashed password stored in the database. If the passwords match, 
+ * it sets the user's ID and username in the session, flashes a success message, 
+ * and redirects to the explore page. If the passwords do not match, it flashes an 
+ * error message and redirects to the home page. If any error occurs during this 
+ * process, it flashes an error message and redirects to the home page.
  */
 app.post("/login", async (req, res) => {
   try {
@@ -349,7 +360,8 @@ app.post("/login", async (req, res) => {
  * This route handles the POST request to the logout page.
  *
  * It checks if a user is logged in by checking if a username exists in the session.
- * If a user is logged in, it sets the user's ID, username, and logged_in status in the session to false, flashes a logout success message, and redirects to the home page.
+ * If a user is logged in, it sets the user's ID, username, and logged_in status 
+ * in the session to false,flashes a logout success message, and redirects to the home page.
  * If no user is logged in, it flashes an error message and redirects to the home page.
  */
 app.post("/logout", (req, res) => {
@@ -368,22 +380,25 @@ app.post("/logout", (req, res) => {
 /**
  * This route handles the GET request to the addevent page.
  *
- * It logs a message to the console indicating that the addevent form is being accessed.
- * It then renders the 'addevent.ejs' view, passing the action URL and any query parameters from the request to the view.
+ * It logs a message to the console indicating that the addevent form is being 
+ * accessed. It then renders the 'addevent.ejs' view, passing the action URL 
+ * and any query parameters from the request to the view.
  */
 app.get("/addevent/", (req, res) => {
   console.log("get addevent form");
-  return res.render("addevent.ejs", { action: "/addevent/", data: req.query }); //userid: req.session.uid
+  return res.render("addevent.ejs", { action: "/addevent/", data: req.query });
 });
 
 /**
  * This route handles the POST request to the addevent page.
  *
  * It receives an image file and other event details from the request body.
- * It checks if any required fields are missing from the request body or if the image file is missing.
- * If any required data is missing, it flashes an error message and re-renders the addevent page with the submitted data.
- * If all required data is present, it opens a connection to the database and inserts a new event document with the submitted data and some default values.
- * It then redirects to the myevent page.
+ * It checks if any required fields are missing from the request body or if 
+ * the image file is missing. If any required data is missing, it flashes an error 
+ * message and re-renders the addevent page with the submitted data. If all required
+ * data is present, it opens a connection to the database and inserts a new event 
+ * document with the submitted data and some default values. It then redirects to 
+ * the myevent page.
  */
 app.post("/addevent", upload.single("image"), async (req, res) => {
   console.log("post a new event to the database");
@@ -448,7 +463,8 @@ app.post("/addevent", upload.single("image"), async (req, res) => {
 /**
  * This route handles the GET request to the editEvent page.
  *
- * It retrieves the event ID from the request query, opens a connection to the database, and retrieves the event with the given ID.
+ * It retrieves the event ID from the request query, opens a connection to the database, 
+ * and retrieves the event with the given ID.
  * It then renders the 'editevent.ejs' view, passing the retrieved event to the view.
  */
 app.get("/editEvent", async (req, res) => {
@@ -466,7 +482,8 @@ app.get("/editEvent", async (req, res) => {
  * This route handles the POST request to the editEvent page.
  *
  * It retrieves the event ID and updated event data from the request body.
- * It opens a connection to the database and updates the event with the given ID using the updated event data.
+ * It opens a connection to the database and updates the event with the given ID 
+ * using the updated event data.
  * It then redirects to the myevent page.
  */
 app.post("/editEvent", async (req, res) => {
@@ -501,8 +518,10 @@ app.post("/editEvent", async (req, res) => {
  *
  * It retrieves the friend ID from the request body and the user's username from the session.
  * It opens a connection to the database and retrieves the user's data.
- * If the friend ID is not already in the user's friends list, it adds the friend ID to the user's friends list in the database.
- * It then re-retrieves the user's data and renders the 'profile.ejs' view, passing the username from the session, the user's data, and an empty list of people to the view.
+ * If the friend ID is not already in the user's friends list, it adds the 
+ * friend ID to the user's friends list in the database.
+ * It then re-retrieves the user's data and renders the 'profile.ejs' view, 
+ * passing the username from the session, the user's data, and an empty list of people to the view.
  */
 app.post("/addFriend/", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
@@ -540,8 +559,9 @@ app.post("/addFriend/", async (req, res) => {
 /**
  * This route handles the POST request to the deleteEvent page.
  *
- * It retrieves the event ID from the request body, opens a connection to the database, and deletes the event with the given ID.
- * If the event was deleted successfully, it flashes an info message. If the event was not deleted successfully, it flashes an error message.
+ * It retrieves the event ID from the request body, opens a connection to the database,
+ *  and deletes the event with the given ID. If the event was deleted successfully, it 
+ * flashes an info message. If the event was not deleted successfully, it flashes an error message.
  * It then redirects to the myevent page.
  */
 app.post("/deleteEvent", async (req, res) => {
@@ -561,12 +581,13 @@ app.post("/deleteEvent", async (req, res) => {
 
 /**
  * This route handles the GET request to the searchFriends page.
- *
- * It retrieves the search entry and kind from the request query and the user's username from the session.
- * It opens a connection to the database and retrieves the user's data.
- * If only the search entry or kind is provided, it flashes an info message and redirects to the profile page.
- * If both the search entry and kind are provided, it searches for users whose name or username matches the search entry, depending on the kind.
- * It then renders the 'profile.ejs' view, passing the username from the session, the user's data, and the list of matching users to the view.
+ * It retrieves the search entry and kind from the request query and the user's username from 
+ * the session. It opens a connection to the database and retrieves the user's data.
+ * If only the search entry or kind is provided, it flashes an info message and 
+ * redirects to the profile page. If both the search entry and kind are provided, 
+ * it searches for users whose name or username matches the search entry, depending on the kind.
+ * It then renders the 'profile.ejs' view, passing the username from the session, 
+ * the user's data, and the list of matching users to the view.
  */
 app.get("/searchFriends", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
@@ -612,13 +633,15 @@ app.get("/searchFriends", async (req, res) => {
 /**
  * This route handles the GET request to the search page.
  *
- * It retrieves the search entry, kind, and date from the request query and the user's username from the session.
- * It opens a connection to the database and retrieves all events.
- * If only the search entry or kind is provided, it flashes an info message and renders the 'explore.ejs' view with all events.
- * If the kind is 'person', it searches for events whose organizer's name matches the search entry.
- * If the kind is not 'person' and is provided, it searches for events whose date and the field corresponding to the kind match the search entry and date.
- * If the kind is not provided, it searches for events whose date matches the search date.
- * It then renders the 'explore.ejs' view, passing the username from the session and the matching events to the view.
+ * It retrieves the search entry, kind, and date from the request query and the user's username 
+ * from the session. It opens a connection to the database and retrieves all events.
+ * If only the search entry or kind is provided, it flashes an info message and renders 
+ * the 'explore.ejs' view with all events. If the kind is 'person', it searches for events 
+ * whose organizer's name matches the search entry. If the kind is not 'person' and is provided, 
+ * it searches for events whose date and the field corresponding to the kind match the 
+ * search entry and date. If the kind is not provided, it searches for events whose date 
+ * matches the search date. It then renders the 'explore.ejs' view, passing the username from 
+ * the session and the matching events to the view.
  */
 app.get("/search/", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
@@ -652,16 +675,16 @@ app.get("/search/", async (req, res) => {
     if (kind) {
       let kpattern = new RegExp(entry, "i");
       let dpattern = new RegExp(date, "i");
-      let query = { date: { $regex: dpattern } }; //todo austen - check that this works
+      let query = { date: { $regex: dpattern } }; 
       query[kind] = { $regex: kpattern };
       console.log("here is query", query);
-      events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+      events = await db.collection(EVENTS).find(query).toArray(); 
       console.log("here are events", events);
     } else {
       let dpattern = new RegExp(date, "i");
-      let query = { date: { $regex: dpattern } }; //todo austen - check that this works
+      let query = { date: { $regex: dpattern } }; 
       console.log("here is query", query);
-      events = await db.collection(EVENTS).find(query).toArray(); //todo austen - this is iffy
+      events = await db.collection(EVENTS).find(query).toArray(); 
       console.log("here are events", events);
     }
   }
@@ -676,12 +699,13 @@ app.get("/search/", async (req, res) => {
 /**
  * This route handles the GET request to the filter page.
  *
- * It retrieves the age, food, onCampus, offCampus, sports, and org from the request query and the user's username from the session.
- * It opens a connection to the database.
- * It creates a list of tags from the query parameters, filtering out any empty values.
- * If there are any tags, it creates a query to find events whose tags are in the list of tags.
- * It retrieves the events matching the query from the database.
- * It then renders the 'explore.ejs' view, passing the username from the session and the matching events to the view.
+ * It retrieves the age, food, onCampus, offCampus, sports, and org from the request
+ * query and the user's username from the session.
+ * It opens a connection to the database. It creates a list of tags from the query parameters, 
+ * filtering out any empty values. If there are any tags, it creates a query to find events 
+ * whose tags are in the list of tags. It retrieves the events matching the query from the database.
+ * It then renders the 'explore.ejs' view, passing the username from the session and the matching 
+ * events to the view.
  */
 app.get("/filter", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
@@ -760,7 +784,8 @@ app.get("/savedevent", async (req, res) => {
   let user = await db.collection(USERS).findOne({ username: req.session.username });
   let savedEvents;
   if (user.saved && user.saved.length > 0) {
-      savedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.saved } }).sort({ date: -1 }).toArray();
+      savedEvents = await db.collection(EVENTS).find({ eventId: {$in: user.saved}})
+      .sort({ date: -1 }).toArray();
   } else {
       savedEvents = [];
   }
@@ -777,7 +802,8 @@ app.get("/rsvpedevent", async (req, res) => {
   let user = await db.collection(USERS).findOne({ username: req.session.username });
   let rsvpedEvents;
   if (user.saved && user.saved.length > 0) {
-    rsvpedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.rsvp } }).sort({ date: -1 }).toArray();
+    rsvpedEvents = await db.collection(EVENTS).find({eventId: {$in: user.rsvp }})
+    .sort({date: -1}).toArray();
   } else {
     rsvpedEvents = [];
   }  
@@ -792,11 +818,12 @@ app.get("/rsvpedevent", async (req, res) => {
  * This route handles the POST request to the updateProfile page.
  *
  * It opens a connection to the database and retrieves the user's data.
- * It then iterates over the request body, updating the user's data with the new values provided in the request body.
- * It updates the user's data in the database.
+ * It then iterates over the request body, updating the user's data with the 
+ * new values provided in the request body.It updates the user's data in the database.
  * It updates the username in the session with the new username.
  * It retrieves the updated user's data from the database.
- * It then renders the 'profile.ejs' view, passing the username from the session, the updated user's data, and an empty list of people to the view.
+ * It then renders the 'profile.ejs' view, passing the username from the session, 
+ * the updated user's data, and an empty list of people to the view.
 
  */
 app.post("/updateProfile/", async (req, res) => {
