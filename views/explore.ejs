@@ -24,14 +24,23 @@
         <% events.forEach( (evt) => {%>
         <li class="event-details" data-id="<%= evt?.eventId %>">
           <h2><%= evt.eventName %></h2>
-          <p><strong>Event ID:</strong> <%= evt?.eventId %></p>
-          <p><strong>Organizer Name:</strong> <%= evt?.nameOfOrganizer %></p>
-          <p><strong>Location:</strong> <%= evt?.location %></p>
-          <p><strong>Date:</strong> <%= evt?.date %></p>
-          <p><strong>Start Time:</strong> <%= evt?.startTime %></p>
-          <p><strong>End Time:</strong> <%= evt?.endTime %></p>
-          <p><strong>Image:</strong></p>
           <img src="<%= evt?.image[0] %>" alt="Event Image" width="300">
+          <!-- <p><strong>Event ID:</strong> <%= evt?.eventId %></p> -->
+          <p><strong>Organizer:</strong> <%= evt?.nameOfOrganizer %></p>
+          <p><strong>Location:</strong> <%= evt?.location %></p>
+          <!-- <p><strong>Date:</strong> <%= evt?.date %></p> -->
+          <p><strong>Date:</strong> <%= new Date(evt?.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
+          <!-- <p><strong>Start Time:</strong> <%= evt?.startTime %></p>
+          <p><strong>End Time:</strong> <%= evt?.endTime %></p> -->
+          <p><strong>Time:</strong> <%= formatTime(evt?.startTime) %>-<%= formatTime(evt?.endTime) %></p>
+          <% function formatTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours, 10);
+            const minute = parseInt(minutes, 10);
+            const suffix = hour >= 12 ? 'pm' : 'am';
+            const formattedHour = hour % 12 || 12; // Convert 0 to 12
+            return `${formattedHour}:${minute.toString().padStart(2, '0')}${suffix}`;
+          } %>
           <p><strong>Tags:</strong> <%= Array.isArray(evt.tags) ? (evt.tags.length === 1 ? evt.tags[0] : evt.tags.join(', ')) : evt.tags %></p>
           <p><strong>Attendees:</strong> <%= evt?.attendees.join(', ') %></p>
           <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
