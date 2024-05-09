@@ -22,7 +22,7 @@
   <% } else { %>
     <div class="events-grid">
       <% events.forEach( (evt) => { %>
-        <li class="event-details" data-id="<%= evt?.eventId %>">
+        <div class="event-details" data-id="<%= evt?.eventId %>">
           <h2><%= evt.eventName %></h2>
           <img src="<%= evt?.image[0] %>" alt="Event Image" width="300">
           <p><strong>Organizer:</strong> <%= evt?.nameOfOrganizer %></p>
@@ -63,7 +63,7 @@
             <% } %>
           </p>
           
-        </li>
+        </div>
         <% }); %>
       </div>
     <% } %>

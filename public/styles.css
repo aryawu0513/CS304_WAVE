@@ -98,7 +98,7 @@ form.example {
 
 button, .button-style {
   color: #000000;
-  background-color: #D29DDE;
+  background-color: #cc7edd;
   border-radius: 50px;
   border: none;
   font-size: 30;
@@ -106,3 +106,7 @@ button, .button-style {
   margin: 10px;
   padding: 10px 65px;
 };
+
+ul {
+  list-style-type: none;
+}
