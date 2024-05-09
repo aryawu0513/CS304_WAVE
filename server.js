@@ -575,13 +575,12 @@ app.get("/searchFriends", async (req, res) => {
   const kind = req.query.kind;
 
   let data = await users
-    .find({ username: req.session.username })
+    .find({username: req.session.username})
     .project({ name: 1, username: 1, wellesleyEmail: 1, friends: 1 })
     .toArray();
-  console.log(data, req.session.username);
   console.log(parseInfo(data[0]));
 
-  console.log(entry, kind, "entyr and kind");
+  console.log(entry, kind, "entry and kind");
 
   if ((entry && !kind) || (!entry && kind)) {
     req.flash(
@@ -718,11 +717,13 @@ app.get("/filter", async (req, res) => {
  * It retrieves all events from the database.
  * It then renders the 'explore.ejs' view, passing the username and all events to the view.
  */
-app.post("/rsvp/", async (req, res) => {
+app.post("/rsvp", async (req, res) => {
   let username = req.session.username || "unknown";
-  let eventId = req.params.eventId;
+  let eventId = req.body.eventId;
+  eventId = parseInt(eventId);
   const db = await Connection.open(mongoUri, DBNAME);
   // add user id to rsvp in event
+  console.log(eventId, "event");
   await db
     .collection(EVENTS)
     .updateOne({ eventId: eventId }, { $addToSet: { attendees: username } });
@@ -730,11 +731,11 @@ app.post("/rsvp/", async (req, res) => {
   // add event id to rsvp in user
   await db
     .collection(USERS)
-    .updateOne({ username: username }, { $addToSet: { rsvp: eventId } });
+    .updateOne({username: username}, {$addToSet: {rsvp: eventId}});
 
   // let events = await db.collection(EVENTS).find().toArray();
-  let events = await db.collection(EVENTS).find().sort({ date: -1 }).toArray();
-  let user = await db.collection(USERS).findOne({ username: req.session.username });
+  let events = await db.collection(EVENTS).find().sort({date: -1}).toArray();
+  let user = await db.collection(USERS).findOne({username: req.session.username});
   return res.render("explore.ejs", { user:user,username: username, events: events });
 });
 
