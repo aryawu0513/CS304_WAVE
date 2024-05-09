@@ -25,13 +25,9 @@
         <li class="event-details" data-id="<%= evt?.eventId %>">
           <h2><%= evt.eventName %></h2>
           <img src="<%= evt?.image[0] %>" alt="Event Image" width="300">
-          <!-- <p><strong>Event ID:</strong> <%= evt?.eventId %></p> -->
           <p><strong>Organizer:</strong> <%= evt?.nameOfOrganizer %></p>
           <p><strong>Location:</strong> <%= evt?.location %></p>
-          <!-- <p><strong>Date:</strong> <%= evt?.date %></p> -->
           <p><strong>Date:</strong> <%= new Date(evt?.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) %></p>
-          <!-- <p><strong>Start Time:</strong> <%= evt?.startTime %></p>
-          <p><strong>End Time:</strong> <%= evt?.endTime %></p> -->
           <p><strong>Time:</strong> <%= formatTime(evt?.startTime) %>-<%= formatTime(evt?.endTime) %></p>
           <% function formatTime(timeString) {
             const [hours, minutes] = timeString.split(':');
@@ -43,9 +39,9 @@
           } %>
           <p><strong>Tags:</strong> <%= Array.isArray(evt.tags) ? (evt.tags.length === 1 ? evt.tags[0] : evt.tags.join(', ')) : evt.tags %></p>
           <p><strong>Attendees:</strong> <%= evt?.attendees.join(', ') %></p>
-          <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
+          <!-- <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
           <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
-          <p><strong>Spotify:</strong> <%= evt?.spotify %></p>
+          <p><strong>Spotify:</strong> <%= evt?.spotify %></p> -->
           <!-- <form method="POST" action="/rsvp">
             <label>RSVP to this event: <input type="submit" value="yes"></label>
             <input type="hidden" name="eventId" value="<%= evt?.eventId %>">

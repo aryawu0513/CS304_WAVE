@@ -23,8 +23,19 @@ span:last-child {
 }
 
 .event-details {
-  border: 1px solid #b42a2a; /* Add a 1px solid border with light gray color */
+  border: 1px solid #d29dde; /* Add a 1px solid border with light gray color */
   padding: 10px; /* Add some padding inside the border */
   margin-bottom: 20px; /* Add some space between each event */
+  border-radius: 5px; /* Add border-radius for curved edges */
+  background-color: #d29dde; /* Fill in the box with a light green color */
+  max-width: 500px; /* Limit the width of the box to 500px */
+  margin-right: 20px; /* Add some space between each box */
+  float: left; /* Float the box to the left */
+  clear: both; /* Clear floats */
 }
 
+ol {
+  list-style-type: none; /* Remove the default numbering */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+}
