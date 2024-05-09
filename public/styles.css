@@ -91,9 +91,9 @@ form.example {
 }
 
 #events-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
+  list-style-type: none; /* Remove the default bullet points */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
 }
 
 button, .button-style {
