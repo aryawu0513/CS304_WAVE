@@ -65,7 +65,11 @@ async function main() {
     hosting: [2]});
     await add(db, 'users', {name: "Bella Steedly", username: 'bella', hash:'bella', wellesleyEmail: 'bs102@wellesley.edu', friends: [1,2,4], 
     rsvp:[2,3], hosting: [3]});
+<<<<<<< HEAD
     await add(db, 'users', {name: "Austen Boodell", username: 'austen', hash: 'austen', wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[3], 
+=======
+    await add(db, 'users', {name: "Austen Boodell", wellesleyEmail: 'eb115@wellesley.edu', friends: [1,2,3], rsvp:[3], 
+>>>>>>> 07a807ae4f14ad852eb2e8f158ee72ebb15242e7
     hosting: []});
 
     //await Connection.open(mongoUri, myDBName);

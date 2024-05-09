@@ -153,6 +153,7 @@ app.get('/explore', async (req, res) => {
 
 app.get('/myevent', async (req,res) => {
     const db = await Connection.open(mongoUri, DBNAME);
+    console.log("MY ID", req.session.uid)
     let myevents = await db.collection(EVENTS).find({ idOrganizer: req.session.uid }).toArray();
     console.log("here are your events", myevents)
     return res.render('myevent.ejs', { username: req.session.username, events: myevents })
@@ -175,7 +176,7 @@ app.get('/profile', async (req,res) => {
     console.log(data, req.session.username);
     console.log(parseInfo(data[0]));
     
-    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0])});
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
 });
 
 app.get('/register', (req, res) => {
@@ -202,7 +203,7 @@ app.post('/register', async (req, res) => {
       const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
-      var existingUser = await db.collection(USERS).findOne({username: username});
+      var existingUser = await db.collection(USERS).findOne({wellesleyEmail: email});
       if (existingUser) {
         req.flash('error', "Login already exists - please try logging in instead.");
         return res.redirect('/')
@@ -215,7 +216,7 @@ app.post('/register', async (req, res) => {
           hash: hash
       };
       const result = await add(db, USERS, userData)
-    //   console.log('successfully joined', result);
+      console.log('successfully joined', result);
       const newUser = await db.collection(USERS).findOne({username: username});
       const userid = newUser.userId; // Assuming userId is the field for user id
       req.flash('info', 'successfully joined and logged in as ' + username);
@@ -231,15 +232,16 @@ app.post('/register', async (req, res) => {
 
 app.post("/login", async (req, res) => {
     try {
-      const userid = req.body.uid;
-      const username = req.body.username;
+    //   const userid = req.body.uid;
+    //   const username = req.body.username;
       const password = req.body.password;
       const db = await Connection.open(mongoUri, DBNAME);
-      var existingUser = await db.collection(USERS).findOne({username: username});
+      console.log('req.email',req.body.email)
+      var existingUser = await db.collection(USERS).findOne({wellesleyEmail: req.body.email});
       console.log('user', existingUser);
       if (!existingUser) {
-        req.flash('error', "Username does not exist - try again.");
-       return res.redirect('/')
+        req.flash('error', "User does not exist - try again.");
+        return res.redirect('/')
       }
       const match = await bcrypt.compare(password, existingUser.hash); 
       console.log('match', match);
@@ -247,6 +249,8 @@ app.post("/login", async (req, res) => {
           req.flash('error', "Username or password incorrect - try again.");
           return res.redirect('/')
       }
+      const username = existingUser.username
+      const userid = existingUser.userId
       req.flash('info', 'successfully logged in as ' + username);
       req.session.uid = userid;
       req.session.username = username;
@@ -284,11 +288,20 @@ app.post('/addevent', upload.single('image'), async (req, res) => {
     console.log('uploaded data', req.body);
     console.log('image', req.file);
     //insert file data into mongodb
-    const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
-    if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
-        req.flash('error', 'Missing Input');
-        return res.render("addevent.ejs",{data: req.body})
+    const requiredFields = ['eventName', 'nameOfOrganizer', 'date', 'startTime', 'endTime', 'location', 'image'];
+    // Check for missing fields
+    const missingFields = requiredFields.filter(field => !req.body[field] && field !== 'image');
+    if (!req.file || missingFields.length > 0) {
+        const missingFieldsMessage = missingFields.length > 0 ? `Missing inputs: ${missingFields.join(', ')}` : '';
+        const imageMessage = !req.file ? 'Image is missing' : '';
+        req.flash('error', `${imageMessage} ${missingFieldsMessage}`);
+        return res.render("addevent.ejs", { data: req.body });
     }
+    // const { eventName, nameOfOrganizer, date, startTime,endTime,location,tags } = req.body;
+    // if (!eventName ||!nameOfOrganizer ||!date ||!startTime ||!endTime ||!location){
+    //     req.flash('error', 'Missing Input');
+    //     return res.render("addevent.ejs",{data: req.body})
+    // }
     const db = await Connection.open(mongoUri, DBNAME);
     
     // const eventsdb = db.collection(EVENTS);
@@ -353,6 +366,30 @@ app.post('/editEvent', async (req, res) => {
     res.redirect('/myevent');
 });
 
+app.post('/addFriend/', async (req, res) =>{
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+
+    let friendId = parseInt(req.body.friendId);
+    let userFriends = data[0].friends;
+    console.log(friendId);
+
+    if (!(friendId in userFriends)){
+        await users.updateOne(
+            { username: req.session.username },
+            { $addToSet: { friends: friendId } }
+        );
+    }
+    data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data[0].friends);
+    
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
+    
+})
+
 // Delete Event
 app.post('/deleteEvent', async (req, res) => {
     // Retrieve the event ID from the request body
@@ -373,8 +410,37 @@ app.post('/deleteEvent', async (req, res) => {
 
 app.get('/searchFriends', async (req, res) => {
     const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
     const entry = req.query.entry;
     const kind = req.query.kind; 
+
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(data, req.session.username);
+    console.log(parseInfo(data[0]));
+    
+
+    console.log(entry, kind, "entyr and kind");
+
+    if ((entry && !kind) || (!entry && kind)){
+        req.flash("info", `please provide corresponding kind for your search query`);
+        return res.redirect("/profile")
+    }
+
+    if (kind == "name"){
+        var listPerson = await users
+        .find({'name': {'$regex': entry, '$options': 'i'}}) //find based on input term
+        .toArray();
+    }
+    else if (kind == 'username'){ 
+        var listPerson = await users
+        .find({'username': {'$regex': entry, '$options': 'i'}}) //find based on input term
+        .toArray();
+    }
+
+    console.log('matches', listPerson);
+
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: listPerson});
+
     
 });
 
@@ -446,7 +512,7 @@ app.get('/search/', async (req, res) => {
         }
     }
     console.log("heres events", events)
-    return res.render('explore.ejs', { username: req.session.uid, events: events });
+    return res.render('explore.ejs', { username: req.session.username, events: events });
 })
 
 //filters events on explore page
@@ -484,9 +550,34 @@ app.post('/rsvp/', async (req, res) => {
     let events = await db.collection(EVENTS).find().toArray();
     return res.render('explore.ejs', { username: username, events: events });
 
-  });
+});
 
+app.post('/updateProfile/', async (req, res) => {
+    const db = await Connection.open(mongoUri, DBNAME);
+    let users = await db.collection(USERS);
+    let data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    console.log(req.body, "body");
 
+    // Extract data from req.body and update user info
+    for (const key in req.body) {
+        if (req.body[key] !== '') {
+            data[0][key] = req.body[key];
+        }
+    }
+    // Update user info in the database
+    await users.updateOne(
+        {username: req.session.username},
+        {$set: data[0]}
+    );
+
+    req.session.username = data[0]['username'];
+
+    data = await users.find({username: req.session.username}).project({name: 1, username: 1, wellesleyEmail: 1, friends: 1}).toArray();
+    
+    console.log(data, "data")
+    return res.render('profile.ejs', {username: req.session.username, userData:parseInfo(data[0]), listPeople: []});
+
+})
 // ================================================================
 // postlude
 
