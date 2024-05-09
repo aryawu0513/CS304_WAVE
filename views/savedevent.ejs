@@ -11,13 +11,16 @@
 
 <body>
   <%- include("partials/navbar.ejs") %>
-
-  <h1>Welcome, <%= username %>! Here are your Interested Events</h1>
-  
+  <% if (save) { %>
+    <h1>Welcome, <%= username %>! Here are your Saved Events</h1>
+  <% } else { %>
+    <h1>Welcome, <%= username %>! Here are your RSVPed Events</h1>
+  <% } %>
   <div>
-    <button onclick="location.href='/savedevent'" type="button">View Saved Events</button>
-    <button onclick="location.href='/rsvpedevent'" type="button">View RSVPed Events</button>
+    <button onclick="location.href='/rsvpedevent'" type="button" <% if (!save) { %> disabled <% } %>>View RSVPed Events</button> 
+    <button onclick="location.href='/savedevent'" type="button" <% if (save) { %> disabled <% } %>>View Saved Events</button>
   </div>
+
   <ol>
     <% events.forEach( (evt) => {%>
     <!-- <li><%= evt%></li> -->
