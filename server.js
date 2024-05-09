@@ -703,10 +703,13 @@ app.get("/filter", async (req, res) => {
 
   let events = await db.collection(EVENTS).find(query).toArray();
   let user = await db.collection(USERS).findOne({ username: req.session.username });
-  return res.render("explore.ejs", { user:user,username: req.session.username, events });
+  return res.render("explore.ejs", { 
+    user:user,
+    username: req.session.username, 
+    events, 
+  });
 });
 
-//working on this
 /**
  * This route handles the POST request to the rsvp page.
  *
@@ -714,8 +717,7 @@ app.get("/filter", async (req, res) => {
  * It opens a connection to the database.
  * It adds the username to the attendees of the event with the given eventId.
  * It adds the eventId to the rsvp of the user with the given username.
- * It retrieves all events from the database.
- * It then renders the 'explore.ejs' view, passing the username and all events to the view.
+ * It then use ajax to update the 'explore.ejs' view
  */
 app.post("/rsvp/:eventId", async (req, res) => {
   let username = req.session.username || "unknown";
@@ -734,13 +736,13 @@ app.post("/rsvp/:eventId", async (req, res) => {
     .updateOne({username: username}, {$addToSet: {rsvp: eventId}});
 
   return res.json({ error: false, eventId:eventId});
-  // let events = await db.collection(EVENTS).find().toArray();
-  // let events = await db.collection(EVENTS).find().sort({date: -1}).toArray();
-  // let user = await db.collection(USERS).findOne({username: req.session.username});
-  // return res.render("explore.ejs", { user:user,username: username, events: events });
 });
 
-// Handle POST requests to "/saveEvent"
+/**
+ * Handle POST requests to "/saveEvent".
+ *
+ * This route saves the event for the current user.
+ */
 app.post("/saveAjax/:eventId", async(req, res) =>{
   let username = req.session.username || "unknown";
   const eventId =parseInt(req.params.eventId);
@@ -754,13 +756,19 @@ app.post("/saveAjax/:eventId", async(req, res) =>{
   return res.json({ error: false, eventId:eventId});
 });
 
-
+/**
+ * Handle GET requests to "/savedevent".
+ *
+ * This route retrieves and renders the saved events for the current user.
+ */
 app.get("/savedevent", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
   let user = await db.collection(USERS).findOne({ username: req.session.username });
   let savedEvents;
   if (user.saved && user.saved.length > 0) {
-      savedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.saved } }).sort({ date: -1 }).toArray();
+      savedEvents = await db.collection(EVENTS)
+      .find({ eventId: { $in: user.saved } })
+      .sort({ date: -1 }).toArray();
   } else {
       savedEvents = [];
   }
@@ -769,15 +777,22 @@ app.get("/savedevent", async (req, res) => {
   return res.render("savedevent.ejs", {
     username: req.session.username,
     events: savedEvents,
+    save: true,
   });
 });
 
+/**
+ * Handle GET requests to "/rsvpedevent".
+ *
+ * This route retrieves and renders the RSVPed events for the current user.
+ */
 app.get("/rsvpedevent", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
   let user = await db.collection(USERS).findOne({ username: req.session.username });
   let rsvpedEvents;
   if (user.saved && user.saved.length > 0) {
-    rsvpedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.rsvp } }).sort({ date: -1 }).toArray();
+    rsvpedEvents = await db.collection(EVENTS)
+    .find({ eventId: { $in: user.rsvp } }).sort({ date: -1 }).toArray();
   } else {
     rsvpedEvents = [];
   }  
@@ -785,6 +800,7 @@ app.get("/rsvpedevent", async (req, res) => {
   return res.render("savedevent.ejs", {
     username: req.session.username,
     events: rsvpedEvents,
+    save: false,
   });
 });
 
