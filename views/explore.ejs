@@ -37,17 +37,26 @@
           <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
           <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
           <p><strong>Spotify:</strong> <%= evt?.spotify %></p>
-          <form method="POST" action="/rsvp">
+          <!-- <form method="POST" action="/rsvp">
             <label>RSVP to this event: <input type="submit" value="yes"></label>
             <input type="hidden" name="eventId" value="<%= evt?.eventId %>">
-          </form>
-          
-          <label>Interested in the event: </label>
-          <% if (user.saved &&!user.saved.includes(evt.eventId)) { %>
-            <button class="saveBtn" type="button">Save</button>
-          <% } else { %>
-            <button class="saveBtn" type="button" disabled="true" >Saved</button>
-          <% } %>
+          </form> -->
+          <p>
+            <label>RSVP to the event: </label>
+            <% if (user.rsvp &&user.rsvp.includes(evt.eventId)) { %>
+              <button class="rsvpBtn" type="button" disabled="true" >RSVPed</button> 
+            <% } else { %>
+              <button class="rsvpBtn" type="button">RSVP</button>
+            <% } %>
+          </p>
+          <p>
+            <label>Interested in the event: </label>
+            <% if (user.saved &&user.saved.includes(evt.eventId)) { %>
+              <button class="saveBtn" type="button" disabled="true" >Saved</button>
+            <% } else { %>
+              <button class="saveBtn" type="button">Save</button>
+            <% } %>
+          </p>
           
         </li>
         <% }); %>

@@ -717,10 +717,10 @@ app.get("/filter", async (req, res) => {
  * It retrieves all events from the database.
  * It then renders the 'explore.ejs' view, passing the username and all events to the view.
  */
-app.post("/rsvp", async (req, res) => {
+app.post("/rsvp/:eventId", async (req, res) => {
   let username = req.session.username || "unknown";
-  let eventId = req.body.eventId;
-  eventId = parseInt(eventId);
+  const eventId =parseInt(req.params.eventId);
+
   const db = await Connection.open(mongoUri, DBNAME);
   // add user id to rsvp in event
   console.log(eventId, "event");
@@ -733,10 +733,25 @@ app.post("/rsvp", async (req, res) => {
     .collection(USERS)
     .updateOne({username: username}, {$addToSet: {rsvp: eventId}});
 
+  return res.json({ error: false, eventId:eventId});
   // let events = await db.collection(EVENTS).find().toArray();
-  let events = await db.collection(EVENTS).find().sort({date: -1}).toArray();
-  let user = await db.collection(USERS).findOne({username: req.session.username});
-  return res.render("explore.ejs", { user:user,username: username, events: events });
+  // let events = await db.collection(EVENTS).find().sort({date: -1}).toArray();
+  // let user = await db.collection(USERS).findOne({username: req.session.username});
+  // return res.render("explore.ejs", { user:user,username: username, events: events });
+});
+
+// Handle POST requests to "/saveEvent"
+app.post("/saveAjax/:eventId", async(req, res) =>{
+  let username = req.session.username || "unknown";
+  const eventId =parseInt(req.params.eventId);
+  
+  // Logic to save the event for the current user
+  const db = await Connection.open(mongoUri, DBNAME);
+  await db
+  .collection(USERS)
+  .updateOne({ username: username }, { $addToSet: { saved: eventId } });
+
+  return res.json({ error: false, eventId:eventId});
 });
 
 
@@ -760,8 +775,12 @@ app.get("/savedevent", async (req, res) => {
 app.get("/rsvpedevent", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
   let user = await db.collection(USERS).findOne({ username: req.session.username });
-  let rsvpedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.rsvp } }).sort({ date: -1 }).toArray();
-    
+  let rsvpedEvents;
+  if (user.saved && user.saved.length > 0) {
+    rsvpedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.rsvp } }).sort({ date: -1 }).toArray();
+  } else {
+    rsvpedEvents = [];
+  }  
   console.log("here are your rsvped events", rsvpedEvents);
   return res.render("savedevent.ejs", {
     username: req.session.username,
@@ -823,22 +842,6 @@ app.post("/updateProfile/", async (req, res) => {
 });
 
 
-// Handle POST requests to "/saveEvent"
-app.post("/saveAjax/:eventId", async(req, res) =>{
-  let username = req.session.username || "unknown";
-  const eventId =parseInt(req.params.eventId);
-  
-  // Logic to save the event for the current user
-  const db = await Connection.open(mongoUri, DBNAME);
-  await db
-  .collection(USERS)
-  .updateOne({ username: username }, { $addToSet: { saved: eventId } });
-
-  // For example, you could add the eventId to the user's saved events list in the database
-  // const doc = await likeMovie(tt);
-  return res.json({ error: false, eventId:eventId});
- // Send success status
-});
 
 
 // ================================================================
