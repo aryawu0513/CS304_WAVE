@@ -27,6 +27,10 @@ nav span a:hover {
   background-color: #cb87db;
 }
 
+body {
+  background-color: #f5f5f5; /* Really light gray color */
+}
+
 span {
   margin-right: 20px; /* Adjust as needed for spacing */
 }
@@ -55,4 +59,13 @@ ol {
   list-style-type: none; /* Remove the default numbering */
   padding: 0; /* Remove default padding */
   margin: 0; /* Remove default margin */
+}
+
+form.example {
+  border: 1px solid #d29dde; /* Add a 1px solid border with light gray color */
+  padding: 10px; /* Add some padding inside the border */
+  border-radius: 5px; /* Add border-radius for curved edges */
+  background-color: #d29dde; /* Fill in the box with a light green color */
+  max-width: 500px; /* Limit the width of the box to 500px */
+  margin: 20px auto 0; /* Center the box horizontally and add padding at the top */
 }

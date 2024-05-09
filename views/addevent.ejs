@@ -10,17 +10,15 @@
 </head>
 <body>
     <%- include("partials/navbar.ejs") %>
-    <h1>Submit a form to add an event</h1>
 
     <%- include("partials/flash.ejs") %>
-
-<h2>POST</h2>
 
 <form class="example"
       id="addevent-form"
       method="POST"
       enctype="multipart/form-data"
       action="/addevent">
+  <h1>Add an event</h1>
   <p><label>Event name: <input name="eventName" value="<%= data.eventName %>"></label></p>
   <p><label>Organizer name: <input name="nameOfOrganizer" value="<%= data.nameOfOrganizer %>"></label></p>
   <p><label>Date: <input type="date" name="date" value="<%= data.date %>"></label></p>
