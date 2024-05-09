@@ -9,11 +9,11 @@ h1 {
 
 nav {
   display: flex;
-  justify-content: space-between; /* Distribute items evenly */
-  width: 90%; /* Occupy the full width of the container */
-  padding: 10px; /* Add some padding for better spacing */
-  box-sizing: border-box; /* Include padding in the width calculation */
-  margin: 0 auto; /* Center the navigation bar horizontally */
+  justify-content: space-between; 
+  width: 90%; 
+  padding: 10px; 
+  box-sizing: border-box; 
+  margin: 0 auto; 
 }
 
 nav span {
@@ -51,46 +51,46 @@ span:last-child {
 }
 
 .event-details {
-  border: 1px solid #d29dde; /* Add a 1px solid border with light gray color */
-  padding: 10px; /* Add some padding inside the border */
-  margin-bottom: 20px; /* Add some space between each event */
-  border-radius: 5px; /* Add border-radius for curved edges */
-  background-color: #d29dde; /* Fill in the box with a light green color */
-  max-width: 500px; /* Limit the width of the box to 500px */
-  margin-right: 20px; /* Add some space between each box */
-  float: left; /* Float the box to the left */
-  clear: both; /* Clear floats */
+  border: 1px solid #d29dde;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  background-color: #d29dde;
+  max-width: 500px;
+  margin-right: 20px;
+  float: left;
+  clear: both;
 }
 
 ol {
-  list-style-type: none; /* Remove the default numbering */
-  padding: 0; /* Remove default padding */
-  margin: 0; /* Remove default margin */
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
 form.example {
-  border: 1px solid #d29dde; /* Add a 1px solid border with light gray color */
-  padding: 10px; /* Add some padding inside the border */
-  border-radius: 5px; /* Add border-radius for curved edges */
-  background-color: #d29dde; /* Fill in the box with a light green color */
-  max-width: 500px; /* Limit the width of the box to 500px */
-  margin: 20px auto 0; /* Center the box horizontally and add padding at the top */
+  border: 1px solid #d29dde;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #d29dde;
+  max-width: 500px;
+  margin: 20px auto 0;
 }
 
 .events-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between; /* Distribute items evenly */
+  justify-content: space-between;
 }
 
 .event-details {
-  width: 29%; /* Each event takes up 30% of the container width (with 2% margin) */
-  margin-right: 2%; /* Add some space between each event */
-  margin-bottom: 2%; /* Add some space below each row */
+  width: 29%;
+  margin-right: 2%;
+  margin-bottom: 2%;
 }
 
 #events-list {
-  list-style-type: none; /* Remove the default bullet points */
-  padding: 0; /* Remove default padding */
-  margin: 0; /* Remove default margin */
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
