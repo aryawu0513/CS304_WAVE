@@ -743,8 +743,13 @@ app.post("/rsvp", async (req, res) => {
 app.get("/savedevent", async (req, res) => {
   const db = await Connection.open(mongoUri, DBNAME);
   let user = await db.collection(USERS).findOne({ username: req.session.username });
-  let savedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.saved } }).sort({ date: -1 }).toArray();
-    
+  let savedEvents;
+  if (user.saved && user.saved.length > 0) {
+      savedEvents = await db.collection(EVENTS).find({ eventId: { $in: user.saved } }).sort({ date: -1 }).toArray();
+  } else {
+      savedEvents = [];
+  }
+ 
   console.log("here are your saved events", savedEvents);
   return res.render("savedevent.ejs", {
     username: req.session.username,
