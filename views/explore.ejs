@@ -19,9 +19,9 @@
   <%- include("partials/filterbar.ejs") %>
   <% if( events.length == 0 ) { %>
     <p>Your search did not produce any results, please try again.</p>
-     <% } else { %>
-      <ol id="events-list">
-        <% events.forEach( (evt) => {%>
+  <% } else { %>
+    <div class="events-grid">
+      <% events.forEach( (evt) => { %>
         <li class="event-details" data-id="<%= evt?.eventId %>">
           <h2><%= evt.eventName %></h2>
           <img src="<%= evt?.image[0] %>" alt="Event Image" width="300">
@@ -65,8 +65,8 @@
           
         </li>
         <% }); %>
-      </ol>
-     <% } %>
+      </div>
+    <% } %>
 
  
 </body>

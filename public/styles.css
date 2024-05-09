@@ -76,3 +76,21 @@ form.example {
   max-width: 500px; /* Limit the width of the box to 500px */
   margin: 20px auto 0; /* Center the box horizontally and add padding at the top */
 }
+
+.events-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between; /* Distribute items evenly */
+}
+
+.event-details {
+  width: 29%; /* Each event takes up 30% of the container width (with 2% margin) */
+  margin-right: 2%; /* Add some space between each event */
+  margin-bottom: 2%; /* Add some space below each row */
+}
+
+#events-list {
+  list-style-type: none; /* Remove the default bullet points */
+  padding: 0; /* Remove default padding */
+  margin: 0; /* Remove default margin */
+}
