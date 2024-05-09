@@ -333,7 +333,6 @@ app.post("/login", async (req, res) => {
       console.log('user', existingUser);
       if (!existingUser) {
         req.flash('error', "User does not exist - try again.");
-        console.log("should have flashed")
         return res.redirect('/')
       }
       const match = await bcrypt.compare(password, existingUser.hash); 
@@ -344,7 +343,7 @@ app.post("/login", async (req, res) => {
       }
       const username = existingUser.username
       const userid = existingUser.userId
-      req.flash('info', 'successfully logged in as ' + username);
+      req.flash('info', 'Successfully logged in as ' + username);
       req.session.uid = userid;
       req.session.username = username;
       req.session.logged_in = true;
