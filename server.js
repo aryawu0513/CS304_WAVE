@@ -684,6 +684,7 @@ app.get("/search/", async (req, res) => {
   });
 });
 
+
 /**
  * This route handles the GET request to the filter page.
  *
@@ -865,6 +866,7 @@ app.post("/updateProfile/", async (req, res) => {
     listPeople: [],
   });
 });
+
 
 
 
