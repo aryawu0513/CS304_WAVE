@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HOME</title>
   <link rel='stylesheet' href="/styles.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <script src="/main.js"></script>
 </head>
 
@@ -19,9 +20,9 @@
   <% if( events.length == 0 ) { %>
     <p>Your search did not produce any results, please try again.</p>
      <% } else { %>
-      <ol>
+      <ol id="events-list">
         <% events.forEach( (evt) => {%>
-        <li class="event-details">
+        <li class="event-details" data-id="<%= evt?.eventId %>">
           <h2><%= evt.eventName %></h2>
           <p><strong>Event ID:</strong> <%= evt?.eventId %></p>
           <p><strong>Organizer Name:</strong> <%= evt?.nameOfOrganizer %></p>
@@ -36,10 +37,27 @@
           <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
           <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
           <p><strong>Spotify:</strong> <%= evt?.spotify %></p>
-          <form method="POST" action="/rsvp">
+          <!-- <form method="POST" action="/rsvp">
             <label>RSVP to this event: <input type="submit" value="yes"></label>
             <input type="hidden" name="eventId" value="<%= evt?.eventId %>">
-          </form>
+          </form> -->
+          <p>
+            <label>RSVP to the event: </label>
+            <% if (user.rsvp &&user.rsvp.includes(evt.eventId)) { %>
+              <button class="rsvpBtn" type="button" disabled="true" >RSVPed</button> 
+            <% } else { %>
+              <button class="rsvpBtn" type="button">RSVP</button>
+            <% } %>
+          </p>
+          <p>
+            <label>Interested in the event: </label>
+            <% if (user.saved &&user.saved.includes(evt.eventId)) { %>
+              <button class="saveBtn" type="button" disabled="true" >Saved</button>
+            <% } else { %>
+              <button class="saveBtn" type="button">Save</button>
+            <% } %>
+          </p>
+          
         </li>
         <% }); %>
       </ol>

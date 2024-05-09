@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang='en'>
+
+<head>
+  <meta charset='utf-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your Events</title>
+  <link rel='stylesheet' href="/styles.css">
+  <script src="/main.js"></script>
+</head>
+
+<body>
+  <%- include("partials/navbar.ejs") %>
+  <% if (save) { %>
+    <h1>Welcome, <%= username %>! Here are your Saved Events</h1>
+  <% } else { %>
+    <h1>Welcome, <%= username %>! Here are your RSVPed Events</h1>
+  <% } %>
+  <div>
+    <button onclick="location.href='/rsvpedevent'" type="button" <% if (!save) { %> disabled <% } %>>View RSVPed Events</button> 
+    <button onclick="location.href='/savedevent'" type="button" <% if (save) { %> disabled <% } %>>View Saved Events</button>
+  </div>
+
+  <ol>
+    <% events.forEach( (evt) => {%>
+    <!-- <li><%= evt%></li> -->
+    <li class="event-details">
+      <h2><%= evt.eventName %></h2>
+      <p><strong>Event ID:</strong> <%= evt?.eventId %></p>
+      <p><strong>Organizer ID:</strong> <%= evt?.idOrganizer %></p>
+      <p><strong>Organizer Name:</strong> <%= evt?.nameOfOrganizer %></p>
+      <p><strong>Location:</strong> <%= evt?.location %></p>
+      <p><strong>Date:</strong> <%= evt?.date %></p>
+      <p><strong>Start Time:</strong> <%= evt?.startTime %></p>
+      <p><strong>End Time:</strong> <%= evt?.endTime %></p>
+      <p><strong>Image:</strong></p>
+      <img src="<%= evt?.image[0] %>" alt="Event Image" width="300">
+      <p><strong>Tags:</strong> <%= Array.isArray(evt.tags) ? (evt.tags.length === 1 ? evt.tags[0] : evt.tags.join(', ')) : evt.tags %></p>
+      <p><strong>Attendees:</strong> <%= evt?.attendees.join(', ') %></p>
+      <p><strong>Venmo:</strong> <%= evt?.venmo %></p>
+      <p><strong>Google Calendar:</strong> <%= evt?.gcal %></p>
+      <p><strong>Spotify:</strong> <%= evt?.spotify %></p>
+    </li>
+    <% }); %>
+  </ol>
+
+  
+
+</body>
+
+</html>
